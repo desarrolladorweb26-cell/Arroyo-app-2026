@@ -3,13 +3,20 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="theme-color" content="#16a34a">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="Arroyo App">
     <title>Arroyo App 2026 - E-commerce Local</title>
     
+    <!-- Fuentes e íconos -->
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.13.3/dist/cdn.min.js"></script>
 
+    <!-- Configuración de Tailwind CSS -->
     <script>
         tailwind.config = {
             theme: {
@@ -32,19 +39,30 @@
 </head>
 <body x-data="arroyoApp()" x-cloak class="text-gray-800 antialiased flex flex-col min-h-screen">
 
+    <!-- BARRA DE NAVEGACIÓN -->
     <nav class="glass-nav sticky top-0 z-40 border-b border-gray-200 shadow-sm">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div class="flex justify-between items-center h-16">
-                <!-- Logo -->
+                <!-- Logo y estado de conexión -->
                 <div class="flex-shrink-0 flex items-center cursor-pointer" @click="currentView = 'home'; currentStoreView = null">
                     <div class="w-10 h-10 bg-brand-600 text-white rounded-xl flex items-center justify-center text-xl font-bold shadow-lg shadow-brand-500/30">
                         <i class="fa-solid fa-store"></i>
                     </div>
-                    <span class="ml-3 font-bold text-xl tracking-tight text-gray-900" x-text="platformSettings.appName"></span>
+                    <div class="ml-3">
+                        <span class="font-bold text-xl tracking-tight text-gray-900 block leading-none" x-text="platformSettings.appName"></span>
+                        <span class="inline-flex items-center text-[10px] font-semibold mt-0.5" :class="dbReady ? 'text-brand-600' : 'text-amber-500'">
+                            <span class="w-1.5 h-1.5 rounded-full mr-1" :class="dbReady ? 'bg-brand-500 animate-pulse' : 'bg-amber-400'"></span>
+                            <span x-text="dbStatus"></span>
+                        </span>
+                    </div>
                 </div>
 
                 <!-- Menú Desktop -->
                 <div class="hidden md:flex space-x-4 items-center">
+                    <button x-show="!isStandalone" @click="installApp()" class="inline-flex items-center space-x-1.5 bg-brand-50 hover:bg-brand-100 text-brand-700 border border-brand-200 font-semibold px-3.5 py-2 rounded-xl text-sm transition">
+                        <i class="fa-solid fa-mobile-screen-button"></i>
+                        <span>Instalar App</span>
+                    </button>
                     <template x-if="!currentSession">
                         <div class="flex space-x-4">
                             <button @click="currentView = 'home'" class="text-gray-600 hover:text-brand-600 font-medium px-3 py-2 transition">Inicio</button>
@@ -62,14 +80,19 @@
                 </div>
 
                 <!-- Botón Menú Mobile -->
-                <div class="md:hidden flex items-center">
-                    <button @click="mobileMenuOpen = !mobileMenuOpen" class="text-gray-600 hover:text-gray-900 focus:outline-none">
+                <div class="md:hidden flex items-center space-x-3">
+                    <button x-show="!isStandalone" @click="installApp()" class="inline-flex items-center space-x-1 bg-brand-600 hover:bg-brand-700 text-white font-semibold px-3 py-1.5 rounded-lg text-xs shadow-sm transition">
+                        <i class="fa-solid fa-download"></i>
+                        <span>Instalar</span>
+                    </button>
+                    <button @click="mobileMenuOpen = !mobileMenuOpen" class="text-gray-600 hover:text-gray-900 focus:outline-none p-2">
                         <i class="fa-solid fa-bars text-2xl"></i>
                     </button>
                 </div>
             </div>
         </div>
         
+        <!-- Menú Desplegable Mobile -->
         <div x-show="mobileMenuOpen" class="md:hidden bg-white border-t border-gray-200 absolute w-full shadow-lg z-50">
             <div class="px-4 pt-2 pb-4 space-y-2">
                 <template x-if="!currentSession">
@@ -87,9 +110,10 @@
         </div>
     </nav>
 
-    <!-- MAIN CONTENT AREA -->
+    <!-- CONTENIDO PRINCIPAL -->
     <main class="flex-grow w-full">
 
+        <!-- VISTA: INICIO / DIRECTORIO PÚBLICO -->
         <div x-show="currentView === 'home'" class="w-full">
             <!-- Hero -->
             <div class="bg-brand-600 text-white py-16 px-4 text-center">
@@ -107,7 +131,7 @@
                     <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                         <template x-for="ad in activeAds()" :key="ad.id">
                             <a :href="ad.link" target="_blank" class="block rounded-2xl overflow-hidden shadow-sm hover:shadow-xl transition group relative">
-                                <img :src="ad.image" class="w-full h-32 md:h-40 object-cover group-hover:scale-105 transition duration-500" :alt="ad.title">
+                                <img :src="ad.image" onerror="this.src='https://placehold.co/800x200/1e293b/ffffff?text=Publicidad'" class="w-full h-32 md:h-40 object-cover group-hover:scale-105 transition duration-500" :alt="ad.title">
                                 <div class="absolute inset-0 bg-gradient-to-t from-black/40 to-transparent"></div>
                                 <span class="absolute bottom-3 left-4 text-white font-bold text-sm drop-shadow-md" x-text="ad.title"></span>
                                 <span class="absolute top-3 right-3 bg-white/90 text-xs font-bold px-2 py-0.5 rounded text-gray-700 shadow">Publicidad</span>
@@ -116,7 +140,7 @@
                     </div>
                 </div>
 
-                <!-- Filtros Rubros -->
+                <!-- Filtros por Rubro -->
                 <div class="flex space-x-3 overflow-x-auto pb-4 mb-8 no-scrollbar">
                     <button @click="selectedRubro = 'Todos'" :class="selectedRubro === 'Todos' ? 'bg-gray-900 text-white' : 'bg-white text-gray-600 border border-gray-200 hover:border-gray-300'" class="px-5 py-2 rounded-full font-medium text-sm whitespace-nowrap transition shadow-sm">Todos</button>
                     <template x-for="rubro in rubros" :key="rubro">
@@ -124,12 +148,12 @@
                     </template>
                 </div>
 
-                <!-- Grid de Tiendas -->
+                <!-- Grilla de Comercios -->
                 <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
                     <template x-for="store in filteredStores()" :key="store.id">
                         <div class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden hover:shadow-xl transition duration-300 group cursor-pointer" @click="openStorefront(store)">
                             <div class="h-32 bg-gray-100 relative">
-                                <img :src="store.cover || 'https://placehold.co/600x400/e2e8f0/64748b?text=Portada'" class="w-full h-full object-cover group-hover:scale-105 transition duration-500">
+                                <img :src="store.cover || 'https://placehold.co/600x400/e2e8f0/64748b?text=Portada'" onerror="this.src='https://placehold.co/600x400/e2e8f0/64748b?text=Portada'" class="w-full h-full object-cover group-hover:scale-105 transition duration-500">
                                 <div class="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent"></div>
                                 <div class="absolute bottom-3 left-4 flex items-center space-x-3">
                                     <div class="w-12 h-12 bg-white rounded-full p-1 shadow-md">
@@ -156,10 +180,11 @@
             </div>
         </div>
 
+        <!-- VISTA: VITRINA DE UNA TIENDA -->
         <div x-show="currentView === 'storefront' && currentStoreView" class="w-full bg-white min-h-screen">
             <template x-if="currentStoreView">
                 <div>
-                    <!-- Store Header -->
+                    <!-- Encabezado de Tienda -->
                     <div class="bg-gray-900 text-white pt-16 pb-8 px-4 relative overflow-hidden">
                         <div class="absolute inset-0 opacity-30">
                             <img :src="currentStoreView.cover || 'https://placehold.co/1200x400/1f2937/1f2937'" class="w-full h-full object-cover blur-sm">
@@ -180,14 +205,19 @@
                         </div>
                     </div>
 
-                    <!-- Store Products -->
+                    <!-- Catálogo de Productos -->
                     <div class="max-w-5xl mx-auto px-4 py-12">
-                        <h2 class="text-2xl font-bold text-gray-900 mb-8 border-b pb-4">Nuestro Catálogo</h2>
+                        <div class="flex items-center justify-between mb-8 border-b pb-4">
+                            <h2 class="text-2xl font-bold text-gray-900">Nuestro Catálogo</h2>
+                            <button @click="currentView = 'home'; currentStoreView = null" class="text-sm text-brand-600 hover:underline font-medium">
+                                <i class="fa-solid fa-arrow-left mr-1"></i> Volver al inicio
+                            </button>
+                        </div>
                         <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
                             <template x-for="product in getStoreProducts(currentStoreView.id)" :key="product.id">
                                 <div class="bg-white rounded-xl border border-gray-200 shadow-sm hover:shadow-md transition overflow-hidden flex flex-col">
                                     <div class="h-48 bg-gray-50 relative">
-                                        <img :src="product.image || 'https://placehold.co/400x300/f8fafc/94a3b8?text=Sin+Imagen'" class="w-full h-full object-cover">
+                                        <img :src="product.image || 'https://placehold.co/400x300/f8fafc/94a3b8?text=Sin+Imagen'" onerror="this.src='https://placehold.co/400x300/f8fafc/94a3b8?text=Sin+Imagen'" class="w-full h-full object-cover">
                                         <span class="absolute top-2 right-2 bg-white/90 backdrop-blur-sm px-2 py-1 rounded text-xs font-bold text-gray-700 shadow" x-text="product.category"></span>
                                     </div>
                                     <div class="p-5 flex-1 flex flex-col">
@@ -195,7 +225,7 @@
                                         <p class="text-gray-500 text-sm mb-4 line-clamp-2 flex-1" x-text="product.description"></p>
                                         <div class="flex justify-between items-center mt-auto">
                                             <span class="text-xl font-extrabold text-brand-600" x-text="formatPrice(product.price)"></span>
-                                            <a :href="'https://wa.me/'+currentStoreView.whatsapp+'?text=Hola, me interesa el producto: '+product.name" target="_blank" class="w-10 h-10 rounded-full bg-gray-100 hover:bg-brand-100 text-gray-600 hover:text-brand-600 flex items-center justify-center transition">
+                                            <a :href="'https://wa.me/'+currentStoreView.whatsapp+'?text=Hola, me interesa el producto: '+encodeURIComponent(product.name)" target="_blank" class="w-10 h-10 rounded-full bg-gray-100 hover:bg-brand-100 text-gray-600 hover:text-brand-600 flex items-center justify-center transition">
                                                 <i class="fa-solid fa-cart-shopping"></i>
                                             </a>
                                         </div>
@@ -212,6 +242,7 @@
             </template>
         </div>
 
+        <!-- VISTA: REGISTRO DE COMERCIOS Y SUSCRIPCIÓN ANUAL -->
         <div x-show="currentView === 'register'" class="max-w-4xl mx-auto px-4 py-12">
             <div class="text-center mb-10">
                 <h2 class="text-3xl font-extrabold text-gray-900 mb-3">Vende online con <span x-text="platformSettings.appName"></span></h2>
@@ -219,7 +250,7 @@
             </div>
 
             <div class="bg-white rounded-3xl shadow-xl overflow-hidden flex flex-col md:flex-row border border-gray-100">
-                <!-- Plan Card -->
+                <!-- Tarjeta del Plan -->
                 <div class="md:w-1/3 bg-gray-900 text-white p-8 md:p-10 flex flex-col justify-center relative overflow-hidden">
                     <div class="absolute top-0 right-0 -mr-8 -mt-8 w-32 h-32 rounded-full bg-brand-500 opacity-20 blur-2xl"></div>
                     <div class="relative z-10">
@@ -237,13 +268,13 @@
                         </ul>
 
                         <div class="bg-white/10 p-4 rounded-xl text-center border border-white/10">
-                            <img src="https://logospng.org/download/mercado-pago/logo-mercado-pago-icono-1024.png" alt="Mercado Pago" class="w-8 h-8 mx-auto mb-2 opacity-80">
+                            <img src="https://logospng.org/download/mercado-pago/logo-mercado-pago-icono-1024.png" onerror="this.style.display='none'" alt="Mercado Pago" class="w-8 h-8 mx-auto mb-2 opacity-80">
                             <p class="text-xs text-gray-400">Suscripción gestionada 100% segura vía Mercado Pago.</p>
                         </div>
                     </div>
                 </div>
 
-                <!-- Formulary -->
+                <!-- Formulario de Alta -->
                 <div class="md:w-2/3 p-8 md:p-10">
                     <h3 class="text-xl font-bold text-gray-900 mb-6">Datos de tu Comercio</h3>
                     <form @submit.prevent="registerMerchant" class="space-y-5">
@@ -271,7 +302,7 @@
                         <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
                             <div>
                                 <label class="block text-sm font-medium text-gray-700 mb-1">WhatsApp (con cód. área)</label>
-                                <input type="number" x-model="registerForm.whatsapp" required class="w-full px-4 py-2.5 rounded-xl border border-gray-300 focus:ring-2 focus:ring-brand-500 outline-none transition bg-gray-50" placeholder="5491122334455">
+                                <input type="number" x-model="registerForm.whatsapp" required class="w-full px-4 py-2.5 rounded-xl border border-gray-300 focus:ring-2 focus:ring-brand-500 outline-none transition bg-gray-50" placeholder="5493412233445">
                             </div>
                             <div>
                                 <label class="block text-sm font-medium text-gray-700 mb-1">Email (Usuario de acceso)</label>
@@ -296,10 +327,11 @@
             </div>
         </div>
 
+        <!-- VISTA: PANEL DEL COMERCIANTE -->
         <div x-show="currentView === 'merchant_dashboard'" class="max-w-7xl mx-auto px-4 py-8">
             <template x-if="currentSession && currentSession.role === 'merchant'">
                 <div>
-                    <!-- Dashboard Header -->
+                    <!-- Encabezado Dashboard -->
                     <div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-8 bg-white p-6 rounded-2xl shadow-sm border border-gray-100">
                         <div class="flex items-center space-x-4 mb-4 md:mb-0">
                             <div class="w-16 h-16 bg-brand-100 text-brand-600 rounded-2xl flex items-center justify-center text-2xl font-bold border-2 border-brand-200">
@@ -320,7 +352,7 @@
                         </div>
                     </div>
 
-                    <!-- Products Table/Grid -->
+                    <!-- Tabla de Productos -->
                     <div class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
                         <div class="p-6 border-b border-gray-100 flex justify-between items-center">
                             <h3 class="text-lg font-bold text-gray-900">Mis Productos</h3>
@@ -376,10 +408,11 @@
             </template>
         </div>
 
+        <!-- VISTA: CPANEL DEL ADMINISTRADOR MAESTRO -->
         <div x-show="currentView === 'admin_dashboard'" class="max-w-7xl mx-auto px-4 py-8">
             <template x-if="currentSession && currentSession.role === 'admin'">
                 <div class="flex flex-col md:flex-row gap-8">
-                    <!-- Admin Sidebar -->
+                    <!-- Barra Lateral Admin -->
                     <div class="w-full md:w-64 flex-shrink-0">
                         <div class="bg-gray-900 text-white rounded-2xl p-6 shadow-xl relative overflow-hidden">
                             <div class="absolute -right-4 -bottom-4 opacity-10 text-9xl"><i class="fa-solid fa-screwdriver-wrench"></i></div>
@@ -407,10 +440,10 @@
                         </div>
                     </div>
 
-                    <!-- Admin Content -->
+                    <!-- Contenido Admin -->
                     <div class="flex-1 space-y-6">
                         
-                        <!-- TAB: Stores -->
+                        <!-- PESTAÑA: Comercios -->
                         <div x-show="adminTab === 'stores'" class="bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
                             <h2 class="text-xl font-bold text-gray-900 mb-6">Gestión de Comercios</h2>
                             <div class="space-y-4">
@@ -439,7 +472,7 @@
                             </div>
                         </div>
 
-                        <!-- TAB: Rubros y Categorías -->
+                        <!-- PESTAÑA: Rubros y Categorías -->
                         <div x-show="adminTab === 'rubros'" class="bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
                             <h2 class="text-xl font-bold text-gray-900 mb-6">Gestionar Rubros</h2>
                             
@@ -460,7 +493,7 @@
                             </div>
                         </div>
 
-                        <!-- TAB: Publicidad -->
+                        <!-- PESTAÑA: Publicidad -->
                         <div x-show="adminTab === 'ads'" class="bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
                             <div class="flex justify-between items-center mb-6">
                                 <h2 class="text-xl font-bold text-gray-900">Banners Publicitarios</h2>
@@ -497,7 +530,7 @@
                             </div>
                         </div>
 
-                        <!-- TAB: Settings (Platform) -->
+                        <!-- PESTAÑA: Configuración General -->
                         <div x-show="adminTab === 'settings'" class="bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
                             <h2 class="text-xl font-bold text-gray-900 mb-6">Configuración de la Plataforma</h2>
                             <form @submit.prevent="savePlatformSettings" class="space-y-5">
@@ -525,7 +558,7 @@
                             </form>
                         </div>
 
-                        <!-- TAB: Profile (Admin Personal Data) -->
+                        <!-- PESTAÑA: Datos Personales del Administrador -->
                         <div x-show="adminTab === 'profile'" class="bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
                             <h2 class="text-xl font-bold text-gray-900 mb-6">Datos Personales del Administrador</h2>
                             <form @submit.prevent="saveAdminProfile" class="space-y-5">
@@ -565,8 +598,7 @@
 
     </main>
 
-    
-    <!-- Modal de Login -->
+    <!-- MODAL DE LOGIN -->
     <div x-show="showLoginModal" class="fixed inset-0 bg-black/60 backdrop-blur-sm z-[60] flex items-center justify-center p-4" x-transition style="display: none;">
         <div @click.away="showLoginModal = false" class="bg-white rounded-3xl max-w-sm w-full p-8 shadow-2xl relative">
             <button @click="showLoginModal = false" class="absolute top-4 right-4 text-gray-400 hover:text-gray-700"><i class="fa-solid fa-xmark text-xl"></i></button>
@@ -591,21 +623,17 @@
                 <button type="submit" class="w-full font-bold py-3.5 rounded-xl shadow-lg transition mt-4" :class="loginType === 'admin' ? 'bg-gray-900 hover:bg-black text-white' : 'bg-brand-600 hover:bg-brand-700 text-white'">
                     Ingresar
                 </button>
-                <div x-show="loginType === 'admin'" class="text-center mt-4">
-                    <p class="text-xs text-gray-400">Datos demo admin: admin@arroyoapp2026.com / admin123</p>
-                </div>
             </form>
         </div>
     </div>
 
-    <!-- Modal de Producto (Crear/Editar) -->
+    <!-- MODAL DE PRODUCTO (CREAR / EDITAR) -->
     <div x-show="showProductModal" class="fixed inset-0 bg-black/60 backdrop-blur-sm z-[60] flex items-center justify-center p-4" x-transition style="display: none;">
         <div @click.away="showProductModal = false" class="bg-white rounded-3xl max-w-md w-full p-8 shadow-2xl relative max-h-[90vh] overflow-y-auto no-scrollbar">
             <button @click="showProductModal = false" class="absolute top-4 right-4 text-gray-400 hover:text-gray-700"><i class="fa-solid fa-xmark text-xl"></i></button>
             <h3 class="text-xl font-bold text-gray-900 mb-6" x-text="productForm.id ? 'Editar Producto' : 'Subir Nuevo Producto'"></h3>
             
             <form @submit.prevent="saveProduct" class="space-y-4">
-                
                 <!-- Subida de Imagen -->
                 <div class="border-2 border-dashed border-gray-300 rounded-2xl p-4 text-center relative hover:bg-gray-50 transition group cursor-pointer">
                     <input type="file" accept="image/*" @change="handleImageUpload" class="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10">
@@ -650,7 +678,7 @@
         </div>
     </div>
 
-    <!-- Modal Admin: Editar Comercio -->
+    <!-- MODAL ADMIN: EDITAR COMERCIO -->
     <div x-show="showAdminEditStoreModal" class="fixed inset-0 bg-black/60 backdrop-blur-sm z-[60] flex items-center justify-center p-4" x-transition style="display: none;">
         <div @click.away="showAdminEditStoreModal = false" class="bg-white rounded-3xl max-w-md w-full p-8 shadow-2xl relative">
             <button @click="showAdminEditStoreModal = false" class="absolute top-4 right-4 text-gray-400 hover:text-gray-700"><i class="fa-solid fa-xmark text-xl"></i></button>
@@ -694,7 +722,7 @@
         </div>
     </div>
 
-    <!-- Modal Admin: Publicidad -->
+    <!-- MODAL ADMIN: PUBLICIDAD -->
     <div x-show="showAdModal" class="fixed inset-0 bg-black/60 backdrop-blur-sm z-[60] flex items-center justify-center p-4" x-transition style="display: none;">
         <div @click.away="showAdModal = false" class="bg-white rounded-3xl max-w-md w-full p-8 shadow-2xl relative">
             <button @click="showAdModal = false" class="absolute top-4 right-4 text-gray-400 hover:text-gray-700"><i class="fa-solid fa-xmark text-xl"></i></button>
@@ -704,39 +732,74 @@
                 <div class="border-2 border-dashed border-gray-300 rounded-2xl p-4 text-center relative hover:bg-gray-50 transition group cursor-pointer">
                     <input type="file" accept="image/*" @change="handleAdImageUpload" class="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10">
                     <template x-if="adForm.image">
-                        <img :src="adForm.image" class="w-full h-24 object-cover mb-2 rounded-lg">
+                        <img :src="adForm.image" class="w-full h-32 object-cover rounded-lg">
                     </template>
                     <template x-if="!adForm.image">
-                        <div class="py-4 text-gray-400 group-hover:text-brand-500 transition">
-                            <i class="fa-solid fa-cloud-arrow-up text-3xl mb-2"></i>
-                            <p class="text-sm font-medium">Subir imagen (ej. 800x200px)</p>
+                        <div class="py-6 text-gray-400 group-hover:text-brand-500 transition">
+                            <i class="fa-solid fa-image text-3xl mb-2"></i>
+                            <p class="text-sm font-medium">Toca para subir imagen del banner</p>
                         </div>
                     </template>
                 </div>
 
                 <div>
-                    <label class="block text-xs font-semibold text-gray-600 uppercase mb-1">Nombre / Cliente</label>
-                    <input type="text" x-model="adForm.title" required class="w-full px-4 py-2.5 rounded-xl border border-gray-300 focus:ring-2 focus:ring-brand-500 outline-none text-sm">
+                    <label class="block text-xs font-semibold text-gray-600 uppercase mb-1">Título del Anuncio</label>
+                    <input type="text" x-model="adForm.title" required class="w-full px-4 py-2.5 rounded-xl border border-gray-300 focus:ring-2 focus:ring-brand-500 outline-none text-sm bg-gray-50" placeholder="Ej. Promo 20% Off">
                 </div>
-                
+
                 <div>
-                    <label class="block text-xs font-semibold text-gray-600 uppercase mb-1">Link de destino (URL)</label>
-                    <input type="url" x-model="adForm.link" class="w-full px-4 py-2.5 rounded-xl border border-gray-300 focus:ring-2 focus:ring-brand-500 outline-none text-sm" placeholder="https://...">
+                    <label class="block text-xs font-semibold text-gray-600 uppercase mb-1">Enlace (Instagram, WhatsApp o Web)</label>
+                    <input type="text" x-model="adForm.link" required class="w-full px-4 py-2.5 rounded-xl border border-gray-300 focus:ring-2 focus:ring-brand-500 outline-none text-sm bg-gray-50" placeholder="https://...">
                 </div>
 
-                <div class="flex items-center space-x-3 pt-2">
-                    <input type="checkbox" id="adActive" x-model="adForm.active" class="w-5 h-5 text-brand-600 rounded border-gray-300 focus:ring-brand-500">
-                    <label for="adActive" class="text-sm font-medium text-gray-700">Banner visible al público</label>
-                </div>
+                <label class="flex items-center space-x-3 cursor-pointer pt-1">
+                    <input type="checkbox" x-model="adForm.active" class="w-4 h-4 text-brand-600 rounded focus:ring-brand-500">
+                    <span class="text-sm font-medium text-gray-700">Banner activo (visible en el inicio)</span>
+                </label>
 
-                <div class="pt-4">
-                    <button type="submit" class="w-full bg-brand-600 hover:bg-brand-700 text-white font-bold py-3.5 rounded-xl shadow-lg transition">Guardar Publicidad</button>
+                <div class="pt-2">
+                    <button type="submit" class="w-full bg-brand-600 hover:bg-brand-700 text-white font-bold py-3.5 rounded-xl shadow-lg transition">
+                        Guardar Banner
+                    </button>
                 </div>
             </form>
         </div>
     </div>
 
-    <!-- Custom Confirm Modal -->
+    <!-- MODAL GUÍA DE INSTALACIÓN PWA (IPHONE / ANDROID) -->
+    <div x-show="showInstallModal" class="fixed inset-0 bg-black/60 backdrop-blur-sm z-[70] flex items-center justify-center p-4" x-transition.opacity style="display: none;">
+        <div @click.away="showInstallModal = false" class="bg-white rounded-3xl max-w-sm w-full p-7 shadow-2xl relative">
+            <button @click="showInstallModal = false" class="absolute top-4 right-4 text-gray-400 hover:text-gray-700"><i class="fa-solid fa-xmark text-xl"></i></button>
+            <div class="text-center mb-5">
+                <div class="w-14 h-14 bg-brand-100 text-brand-600 rounded-2xl flex items-center justify-center mx-auto mb-3 text-2xl shadow-inner">
+                    <i class="fa-solid fa-mobile-screen-button"></i>
+                </div>
+                <h3 class="text-xl font-bold text-gray-900">Instalar <span x-text="platformSettings.appName"></span></h3>
+                <p class="text-xs text-gray-500 mt-1">Accede directo desde la pantalla de inicio de tu celular.</p>
+            </div>
+            <div class="space-y-3 text-sm text-gray-700 bg-gray-50 p-4 rounded-2xl border border-gray-100">
+                <template x-if="isIOS">
+                    <div class="space-y-2.5">
+                        <p class="font-semibold text-gray-900"><i class="fa-brands fa-apple mr-1.5"></i> En iPhone / iPad (Safari):</p>
+                        <p>1. Toca el botón <strong>Compartir</strong> <i class="fa-solid fa-arrow-up-from-bracket text-brand-600 mx-1"></i> en la barra inferior.</p>
+                        <p>2. Desliza y elige <strong>"Agregar a inicio"</strong>.</p>
+                        <p>3. Toca <strong>"Agregar"</strong> arriba a la derecha.</p>
+                    </div>
+                </template>
+                <template x-if="!isIOS">
+                    <div class="space-y-2.5">
+                        <p class="font-semibold text-gray-900"><i class="fa-brands fa-android mr-1.5 text-brand-600"></i> En Android / Navegador:</p>
+                        <p>1. Toca el menú de <strong>3 puntos (⋮)</strong> arriba a la derecha.</p>
+                        <p>2. Selecciona <strong>"Instalar aplicación"</strong> o <strong>"Agregar a pantalla principal"</strong>.</p>
+                        <p>3. Confirma tocando <strong>"Instalar"</strong>.</p>
+                    </div>
+                </template>
+            </div>
+            <button @click="showInstallModal = false" class="w-full mt-5 bg-brand-600 hover:bg-brand-700 text-white font-bold py-3 rounded-xl shadow transition">Entendido</button>
+        </div>
+    </div>
+
+    <!-- MODAL DE CONFIRMACIÓN PERSONALIZADO -->
     <div x-show="showConfirmModal" class="fixed inset-0 bg-black/60 backdrop-blur-sm z-[70] flex items-center justify-center p-4" x-transition.opacity style="display: none;">
         <div class="bg-white rounded-3xl max-w-sm w-full p-8 shadow-2xl text-center transform transition-all">
             <div class="w-16 h-16 bg-rose-100 text-rose-600 rounded-full flex items-center justify-center mx-auto mb-4 text-2xl shadow-inner">
@@ -755,7 +818,7 @@
         </div>
     </div>
 
-    <!-- Toast Notification Elegante -->
+    <!-- NOTIFICACIONES FLOTANTES (TOASTS) -->
     <div class="fixed bottom-6 right-6 z-[80] flex flex-col items-end space-y-2 pointer-events-none">
         <div x-show="toastMessage" 
              x-transition:enter="transition ease-out duration-300 transform"
@@ -774,31 +837,278 @@
         </div>
     </div>
 
+    <!-- CONEXIÓN A BASE DE DATOS EN LA NUBE (FIREBASE FIRESTORE) -->
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+        import { getAuth, signInAnonymously, signInWithCustomToken } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getFirestore, doc, getDoc, setDoc, addDoc, updateDoc, deleteDoc, onSnapshot, collection } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+
+        const appId = typeof __app_id !== 'undefined' ? __app_id : 'arroyo-app-2026';
+
+        // =========================================================================
+        // PEGA AQUÍ TUS CLAVES DE FIREBASE PARA GITHUB / VERCEL:
+        // Reemplaza la palabra "null" por las llaves { ... } de tu firebaseConfig
+        // Ejemplo:
+        // const EXTERNAL_FIREBASE_CONFIG = {
+        //     apiKey: "AIzaSy...",
+        //     authDomain: "arroyo-app-2026.firebaseapp.com",
+        //     projectId: "arroyo-app-2026",
+        //     storageBucket: "arroyo-app-2026.firebasestorage.app",
+        //     messagingSenderId: "123456789",
+        //     appId: "1:123456789:web:abcdef"
+        // };
+        // =========================================================================
+        const EXTERNAL_FIREBASE_CONFIG = null;
+
+        const firebaseConfig = typeof __firebase_config !== 'undefined'
+            ? JSON.parse(__firebase_config)
+            : EXTERNAL_FIREBASE_CONFIG;
+        const initialAuthToken = typeof __initial_auth_token !== 'undefined' ? __initial_auth_token : null;
+
+        let db = null;
+        let auth = null;
+        let currentUser = null;
+
+        const publicCol = (name) => collection(db, 'artifacts', appId, 'public', 'data', name);
+        const publicDoc = (name, id) => doc(db, 'artifacts', appId, 'public', 'data', name, id);
+
+        window.dbService = {
+            async init(callbacks) {
+                if (!firebaseConfig) {
+                    throw new Error('Configuración de base de datos no disponible.');
+                }
+
+                const app = initializeApp(firebaseConfig);
+                auth = getAuth(app);
+                db = getFirestore(app);
+
+                // Autenticación anónima antes de leer/escribir
+                if (initialAuthToken) {
+                    const cred = await signInWithCustomToken(auth, initialAuthToken);
+                    currentUser = cred.user;
+                } else {
+                    const cred = await signInAnonymously(auth);
+                    currentUser = cred.user;
+                }
+
+                if (!currentUser) {
+                    throw new Error('No se pudo autenticar con la base de datos.');
+                }
+
+                // Cargar datos iniciales si la base está vacía
+                await this.seedInitialDataIfEmpty();
+
+                // Suscripciones en tiempo real
+                onSnapshot(publicDoc('config', 'platform'), (snap) => {
+                    if (snap.exists()) callbacks.onPlatform(snap.data());
+                }, (err) => callbacks.onError('Error sincronizando configuración', err));
+
+                onSnapshot(publicDoc('config', 'admin'), (snap) => {
+                    if (snap.exists()) callbacks.onAdmin(snap.data());
+                }, (err) => callbacks.onError('Error sincronizando perfil admin', err));
+
+                onSnapshot(publicCol('stores'), (snap) => {
+                    const list = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+                    callbacks.onStores(list);
+                }, (err) => callbacks.onError('Error sincronizando comercios', err));
+
+                onSnapshot(publicCol('products'), (snap) => {
+                    const list = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+                    callbacks.onProducts(list);
+                }, (err) => callbacks.onError('Error sincronizando productos', err));
+
+                onSnapshot(publicCol('ads'), (snap) => {
+                    const list = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+                    callbacks.onAds(list);
+                }, (err) => callbacks.onError('Error sincronizando publicidad', err));
+
+                return currentUser;
+            },
+
+            async seedInitialDataIfEmpty() {
+                if (!currentUser) return;
+                const platformSnap = await getDoc(publicDoc('config', 'platform'));
+                if (!platformSnap.exists()) {
+                    await setDoc(publicDoc('config', 'platform'), {
+                        appName: 'Arroyo App 2026',
+                        city: 'Arroyo Seco',
+                        currency: '$',
+                        subscriptionFee: 15000,
+                        rubros: ['Indumentaria', 'Gastronomía', 'Ferretería', 'Tecnología', 'Servicios']
+                    });
+
+                    await setDoc(publicDoc('config', 'admin'), {
+                        name: 'Administrador Principal',
+                        email: 'admin@arroyoapp.com',
+                        password: 'admin123',
+                        phone: '5493410000000'
+                    });
+
+                    await setDoc(publicDoc('stores', 'demo-store-1'), {
+                        name: 'Boutique Las Margaritas',
+                        email: 'tienda1@demo.com',
+                        password: '123',
+                        rubro: 'Indumentaria',
+                        description: 'Ropa femenina de temporada y accesorios.',
+                        whatsapp: '5491122334455',
+                        logo: null,
+                        cover: null,
+                        status: 'active'
+                    });
+
+                    await setDoc(publicDoc('stores', 'demo-store-2'), {
+                        name: 'Ferretería El Tornillo',
+                        email: 'tienda2@demo.com',
+                        password: '123',
+                        rubro: 'Ferretería',
+                        description: 'Herramientas, pinturas y materiales de construcción.',
+                        whatsapp: '5491122334466',
+                        logo: null,
+                        cover: null,
+                        status: 'active'
+                    });
+
+                    await setDoc(publicDoc('products', 'demo-prod-1'), {
+                        storeId: 'demo-store-1',
+                        name: 'Vestido Floreado Primavera',
+                        price: 25000,
+                        category: 'Vestidos',
+                        description: 'Vestido ligero ideal para el verano.',
+                        image: ''
+                    });
+
+                    await setDoc(publicDoc('products', 'demo-prod-2'), {
+                        storeId: 'demo-store-1',
+                        name: 'Zapatos de Taco',
+                        price: 45000,
+                        category: 'Calzado',
+                        description: 'Zapatos negros elegantes.',
+                        image: ''
+                    });
+
+                    await setDoc(publicDoc('products', 'demo-prod-3'), {
+                        storeId: 'demo-store-2',
+                        name: 'Taladro Percutor 800W',
+                        price: 85000,
+                        category: 'Herramientas Eléctricas',
+                        description: 'Taladro profesional con mechas incluidas.',
+                        image: ''
+                    });
+
+                    await setDoc(publicDoc('ads', 'demo-ad-1'), {
+                        title: 'Promo Banco Local',
+                        image: 'https://placehold.co/800x200/1e293b/ffffff?text=Espacio+Publicitario',
+                        link: '#',
+                        active: true
+                    });
+                } else {
+                    const adminSnap = await getDoc(publicDoc('config', 'admin'));
+                    if (adminSnap.exists() && adminSnap.data().email === 'admin@arroyoapp2026.com') {
+                        await updateDoc(publicDoc('config', 'admin'), { email: 'admin@arroyoapp.com' });
+                    }
+                }
+            },
+
+            async savePlatformConfig(data) {
+                if (!currentUser) return;
+                await setDoc(publicDoc('config', 'platform'), data, { merge: true });
+            },
+
+            async saveAdminConfig(data) {
+                if (!currentUser) return;
+                await setDoc(publicDoc('config', 'admin'), data, { merge: true });
+            },
+
+            async createStore(storeData) {
+                if (!currentUser) return null;
+                const ref = await addDoc(publicCol('stores'), storeData);
+                return ref.id;
+            },
+
+            async updateStore(id, storeData) {
+                if (!currentUser) return;
+                const { id: _, ...cleanData } = storeData;
+                await updateDoc(publicDoc('stores', id), cleanData);
+            },
+
+            async deleteStore(id, storeProductIds) {
+                if (!currentUser) return;
+                await deleteDoc(publicDoc('stores', id));
+                for (const prodId of storeProductIds) {
+                    await deleteDoc(publicDoc('products', prodId));
+                }
+            },
+
+            async saveProduct(productData) {
+                if (!currentUser) return;
+                if (productData.id) {
+                    const { id, ...cleanData } = productData;
+                    await updateDoc(publicDoc('products', id), cleanData);
+                } else {
+                    const { id, ...cleanData } = productData;
+                    await addDoc(publicCol('products'), cleanData);
+                }
+            },
+
+            async deleteProduct(id) {
+                if (!currentUser) return;
+                await deleteDoc(publicDoc('products', id));
+            },
+
+            async saveAd(adData) {
+                if (!currentUser) return;
+                if (adData.id) {
+                    const { id, ...cleanData } = adData;
+                    await updateDoc(publicDoc('ads', id), cleanData);
+                } else {
+                    const { id, ...cleanData } = adData;
+                    await addDoc(publicCol('ads'), cleanData);
+                }
+            },
+
+            async deleteAd(id) {
+                if (!currentUser) return;
+                await deleteDoc(publicDoc('ads', id));
+            }
+        };
+
+        window.dispatchEvent(new CustomEvent('db-service-ready'));
+    </script>
+
+    <!-- LÓGICA PRINCIPAL DE LA APLICACIÓN (ALPINE.JS) -->
     <script>
         function arroyoApp() {
             return {
-                // Estado UI
+                // Estado de navegación y UI
                 currentView: 'home', 
                 currentStoreView: null,
                 selectedRubro: 'Todos',
                 mobileMenuOpen: false,
                 adminTab: 'stores',
+                dbReady: false,
+                dbStatus: 'Conectando...',
                 
+                // Estado PWA (App autoinstalable)
+                deferredPrompt: null,
+                isStandalone: false,
+                isIOS: false,
+                showInstallModal: false,
+
                 // Autenticación y Sesión
-                currentSession: null, // role: 'merchant' | 'admin'
+                currentSession: null,
                 showLoginModal: false,
                 loginType: 'merchant',
                 loginForm: { email: '', password: '' },
 
-                // UI Utils
+                // Modales y Notificaciones
                 showProductModal: false,
                 toastMessage: '',
-                toastType: 'success', // 'success' o 'error'
+                toastType: 'success',
                 showConfirmModal: false,
                 confirmMessage: '',
                 confirmAction: null,
 
-                // Datos Maestros Config
+                // Configuración Maestra
                 platformSettings: {
                     appName: 'Arroyo App 2026',
                     city: 'Arroyo Seco',
@@ -807,7 +1117,7 @@
                 },
                 adminProfile: {
                     name: 'Administrador Principal',
-                    email: 'admin@arroyoapp2026.com',
+                    email: 'admin@arroyoapp.com',
                     password: 'admin123',
                     phone: '5493410000000'
                 },
@@ -840,8 +1150,166 @@
                 registerForm: { name: '', rubro: '', description: '', whatsapp: '', email: '', password: '' },
                 productForm: { id: null, name: '', price: '', category: '', image: '', description: '' },
 
-                // --- MÉTODOS ---
+                // Inicialización
+                init() {
+                    this.setupPWA();
 
+                    const connect = async () => {
+                        try {
+                            await window.dbService.init({
+                                onPlatform: (data) => {
+                                    this.platformSettings = {
+                                        appName: data.appName || 'Arroyo App 2026',
+                                        city: data.city || 'Arroyo Seco',
+                                        currency: data.currency || '$',
+                                        subscriptionFee: data.subscriptionFee ?? 15000
+                                    };
+                                    if (Array.isArray(data.rubros)) {
+                                        this.rubros = data.rubros;
+                                    }
+                                },
+                                onAdmin: (data) => {
+                                    this.adminProfile = { ...this.adminProfile, ...data };
+                                },
+                                onStores: (list) => {
+                                    this.stores = list;
+                                    if (this.currentStoreView) {
+                                        const updated = list.find(s => s.id === this.currentStoreView.id);
+                                        if (updated) this.currentStoreView = updated;
+                                    }
+                                    if (this.currentSession && this.currentSession.role === 'merchant') {
+                                        const updated = list.find(s => s.id === this.currentSession.id);
+                                        if (updated) this.currentSession = { role: 'merchant', ...updated };
+                                    }
+                                },
+                                onProducts: (list) => {
+                                    this.products = list;
+                                },
+                                onAds: (list) => {
+                                    this.ads = list;
+                                },
+                                onError: (msg, err) => {
+                                    console.error(msg, err);
+                                    this.showToast(msg, 'error');
+                                }
+                            });
+                            this.dbReady = true;
+                            this.dbStatus = 'En línea';
+                        } catch (err) {
+                            console.error('Error conectando a la base de datos:', err);
+                            this.dbStatus = 'Modo local';
+                            this.showToast('No se pudo conectar a la nube. Modo local activo.', 'error');
+                        }
+                    };
+
+                    if (window.dbService) {
+                        connect();
+                    } else {
+                        window.addEventListener('db-service-ready', connect, { once: true });
+                    }
+                },
+
+                // Configuración PWA autoinstalable
+                setupPWA() {
+                    this.isStandalone = window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone === true;
+                    this.isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
+
+                    window.addEventListener('beforeinstallprompt', (e) => {
+                        e.preventDefault();
+                        this.deferredPrompt = e;
+                    });
+
+                    window.addEventListener('appinstalled', () => {
+                        this.deferredPrompt = null;
+                        this.isStandalone = true;
+                        this.showInstallModal = false;
+                        this.showToast('¡Arroyo App instalada en tu dispositivo!');
+                    });
+
+                    const createIconBlobUrl = (size) => {
+                        return new Promise((resolve) => {
+                            const canvas = document.createElement('canvas');
+                            canvas.width = size;
+                            canvas.height = size;
+                            const ctx = canvas.getContext('2d');
+                            ctx.fillStyle = '#16a34a';
+                            ctx.fillRect(0, 0, size, size);
+                            ctx.fillStyle = '#ffffff';
+                            ctx.font = `bold ${Math.round(size * 0.45)}px Inter, sans-serif`;
+                            ctx.textAlign = 'center';
+                            ctx.textBaseline = 'middle';
+                            ctx.fillText('A', size / 2, size / 2 + size * 0.03);
+                            canvas.toBlob((blob) => resolve(URL.createObjectURL(blob)), 'image/png');
+                        });
+                    };
+
+                    Promise.all([createIconBlobUrl(192), createIconBlobUrl(512)]).then(([icon192, icon512]) => {
+                        const manifest = {
+                            name: this.platformSettings.appName || 'Arroyo App 2026',
+                            short_name: 'Arroyo App',
+                            description: 'El shopping digital de los comercios locales.',
+                            start_url: window.location.href,
+                            display: 'standalone',
+                            background_color: '#f8fafc',
+                            theme_color: '#16a34a',
+                            icons: [
+                                { src: icon192, sizes: '192x192', type: 'image/png', purpose: 'any maskable' },
+                                { src: icon512, sizes: '512x512', type: 'image/png', purpose: 'any maskable' }
+                            ]
+                        };
+                        const blob = new Blob([JSON.stringify(manifest)], { type: 'application/manifest+json' });
+                        const manifestLink = document.createElement('link');
+                        manifestLink.rel = 'manifest';
+                        manifestLink.href = URL.createObjectURL(blob);
+                        document.head.appendChild(manifestLink);
+
+                        const touchIcon = document.createElement('link');
+                        touchIcon.rel = 'apple-touch-icon';
+                        touchIcon.href = icon192;
+                        document.head.appendChild(touchIcon);
+                    });
+
+                    if ('serviceWorker' in navigator && (window.location.protocol === 'https:' || window.location.hostname === 'localhost')) {
+                        navigator.serviceWorker.register('./sw.js').catch(() => {});
+                    }
+                },
+
+                async installApp() {
+                    if (this.deferredPrompt) {
+                        this.deferredPrompt.prompt();
+                        const { outcome } = await this.deferredPrompt.userChoice;
+                        if (outcome === 'accepted') {
+                            this.deferredPrompt = null;
+                        }
+                    } else {
+                        this.showInstallModal = true;
+                    }
+                },
+
+                // Compresión automática de imágenes para optimizar el guardado en la nube
+                compressImage(file, maxWidth = 600, quality = 0.7) {
+                    return new Promise((resolve, reject) => {
+                        const reader = new FileReader();
+                        reader.onload = (e) => {
+                            const img = new Image();
+                            img.onload = () => {
+                                const canvas = document.createElement('canvas');
+                                const scale = Math.min(1, maxWidth / img.width);
+                                canvas.width = img.width * scale;
+                                canvas.height = img.height * scale;
+                                const ctx = canvas.getContext('2d');
+                                ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+                                resolve(canvas.toDataURL('image/jpeg', quality));
+                            };
+                            img.onerror = reject;
+                            img.src = e.target.result;
+                        };
+                        reader.onerror = reject;
+                        reader.readAsDataURL(file);
+                    });
+                },
+
+                // Helpers de vista
                 activeAds() {
                     return this.ads.filter(a => a.active);
                 },
@@ -867,13 +1335,16 @@
                 openStorefront(store) {
                     this.currentStoreView = store;
                     this.currentView = 'storefront';
-                    window.scrollTo(0,0);
+                    window.scrollTo(0, 0);
                 },
 
-                // Auth
+                // Autenticación
                 openLoginModal(type) {
                     this.loginType = type;
-                    this.loginForm = { email: '', password: '' };
+                    this.loginForm = {
+                        email: type === 'admin' ? this.adminProfile.email : '',
+                        password: ''
+                    };
                     this.showLoginModal = true;
                 },
 
@@ -907,54 +1378,114 @@
                     this.showToast('Sesión cerrada correctamente.');
                 },
 
-                // Admin
-                saveAdminProfile() {
-                    this.showToast('Datos personales del admin actualizados.');
+                // Funciones del Administrador (cPanel)
+                async saveAdminProfile() {
+                    try {
+                        if (this.dbReady) {
+                            await window.dbService.saveAdminConfig({ ...this.adminProfile });
+                        }
+                        this.showToast('Datos personales del admin guardados en la nube.');
+                    } catch (err) {
+                        console.error(err);
+                        this.showToast('Error al guardar el perfil.', 'error');
+                    }
                 },
-                savePlatformSettings() {
-                    this.showToast('Configuración global actualizada.');
+
+                async savePlatformSettings() {
+                    try {
+                        if (this.dbReady) {
+                            await window.dbService.savePlatformConfig({
+                                ...this.platformSettings,
+                                subscriptionFee: Number(this.platformSettings.subscriptionFee),
+                                rubros: [...this.rubros]
+                            });
+                        }
+                        this.showToast('Configuración global guardada en la nube.');
+                    } catch (err) {
+                        console.error(err);
+                        this.showToast('Error al guardar la configuración.', 'error');
+                    }
                 },
                 
-                // Editar y gestionar comercios
                 openAdminEditStore(store) {
                     this.adminStoreForm = { ...store };
                     this.showAdminEditStoreModal = true;
                 },
-                saveAdminEditStore() {
-                    const index = this.stores.findIndex(s => s.id === this.adminStoreForm.id);
-                    if (index !== -1) {
-                        this.stores[index] = { ...this.stores[index], ...this.adminStoreForm };
+
+                async saveAdminEditStore() {
+                    try {
+                        if (this.dbReady) {
+                            await window.dbService.updateStore(this.adminStoreForm.id, { ...this.adminStoreForm });
+                        } else {
+                            const index = this.stores.findIndex(s => s.id === this.adminStoreForm.id);
+                            if (index !== -1) this.stores[index] = { ...this.stores[index], ...this.adminStoreForm };
+                        }
+                        this.showAdminEditStoreModal = false;
+                        this.showToast('Datos del comercio actualizados.');
+                    } catch (err) {
+                        console.error(err);
+                        this.showToast('Error al actualizar el comercio.', 'error');
                     }
-                    this.showAdminEditStoreModal = false;
-                    this.showToast('Datos del comercio actualizados.');
                 },
+
                 deleteStore(id) {
-                    this.requestConfirm('¿Seguro que deseas eliminar este comercio? Se borrarán todos sus productos.', () => {
-                        this.stores = this.stores.filter(s => s.id !== id);
-                        this.products = this.products.filter(p => p.storeId !== id);
-                        this.showToast('Comercio dado de baja.');
+                    this.requestConfirm('¿Seguro que deseas eliminar este comercio? Se borrarán todos sus productos.', async () => {
+                        try {
+                            if (this.dbReady) {
+                                const prodIds = this.products.filter(p => p.storeId === id).map(p => p.id);
+                                await window.dbService.deleteStore(id, prodIds);
+                            } else {
+                                this.stores = this.stores.filter(s => s.id !== id);
+                                this.products = this.products.filter(p => p.storeId !== id);
+                            }
+                            this.showToast('Comercio dado de baja.');
+                        } catch (err) {
+                            console.error(err);
+                            this.showToast('Error al eliminar el comercio.', 'error');
+                        }
                     });
                 },
 
-                // Gestionar Rubros
-                addRubro() {
+                // Rubros
+                async addRubro() {
                     const trimmed = this.newRubroName.trim();
                     if (trimmed && !this.rubros.includes(trimmed)) {
-                        this.rubros.push(trimmed);
-                        this.newRubroName = '';
-                        this.showToast('Rubro añadido.');
+                        const updatedRubros = [...this.rubros, trimmed];
+                        try {
+                            if (this.dbReady) {
+                                await window.dbService.savePlatformConfig({ rubros: updatedRubros });
+                            } else {
+                                this.rubros = updatedRubros;
+                            }
+                            this.newRubroName = '';
+                            this.showToast('Rubro añadido.');
+                        } catch (err) {
+                            console.error(err);
+                            this.showToast('Error al guardar el rubro.', 'error');
+                        }
                     } else {
                         this.showToast('El rubro ya existe o está vacío.', 'error');
                     }
                 },
+
                 removeRubro(rubroName) {
-                    this.requestConfirm(`¿Deseas eliminar el rubro "${rubroName}"?`, () => {
-                        this.rubros = this.rubros.filter(r => r !== rubroName);
-                        this.showToast('Rubro eliminado.');
+                    this.requestConfirm(`¿Deseas eliminar el rubro "${rubroName}"?`, async () => {
+                        const updatedRubros = this.rubros.filter(r => r !== rubroName);
+                        try {
+                            if (this.dbReady) {
+                                await window.dbService.savePlatformConfig({ rubros: updatedRubros });
+                            } else {
+                                this.rubros = updatedRubros;
+                            }
+                            this.showToast('Rubro eliminado.');
+                        } catch (err) {
+                            console.error(err);
+                            this.showToast('Error al eliminar el rubro.', 'error');
+                        }
                     });
                 },
 
-                // Gestionar Publicidad
+                // Publicidad
                 openAdModal(ad = null) {
                     if (ad) {
                         this.adForm = { ...ad };
@@ -963,36 +1494,57 @@
                     }
                     this.showAdModal = true;
                 },
-                handleAdImageUpload(event) {
+
+                async handleAdImageUpload(event) {
                     const file = event.target.files[0];
                     if (file) {
-                        this.adForm.image = URL.createObjectURL(file);
+                        try {
+                            this.adForm.image = await this.compressImage(file, 800, 0.72);
+                        } catch (err) {
+                            this.showToast('Error al procesar la imagen.', 'error');
+                        }
                     }
                 },
-                saveAd() {
+
+                async saveAd() {
                     if (!this.adForm.image) {
                         this.showToast('Sube una imagen para el banner.', 'error');
                         return;
                     }
-                    if (this.adForm.id) {
-                        const index = this.ads.findIndex(a => a.id === this.adForm.id);
-                        if (index !== -1) this.ads[index] = { ...this.adForm };
-                        this.showToast('Publicidad actualizada.');
-                    } else {
-                        const newId = this.ads.length ? Math.max(...this.ads.map(a => a.id)) + 1 : 1;
-                        this.ads.push({ ...this.adForm, id: newId });
-                        this.showToast('Nueva publicidad creada.');
+                    try {
+                        if (this.dbReady) {
+                            await window.dbService.saveAd({ ...this.adForm });
+                        } else if (this.adForm.id) {
+                            const index = this.ads.findIndex(a => a.id === this.adForm.id);
+                            if (index !== -1) this.ads[index] = { ...this.adForm };
+                        } else {
+                            this.ads.push({ ...this.adForm, id: 'local-' + Date.now() });
+                        }
+                        this.showToast(this.adForm.id ? 'Publicidad actualizada.' : 'Nueva publicidad creada.');
+                        this.showAdModal = false;
+                    } catch (err) {
+                        console.error(err);
+                        this.showToast('Error al guardar la publicidad.', 'error');
                     }
-                    this.showAdModal = false;
                 },
+
                 deleteAd(id) {
-                    this.requestConfirm('¿Deseas borrar este banner publicitario?', () => {
-                        this.ads = this.ads.filter(a => a.id !== id);
-                        this.showToast('Publicidad eliminada.');
+                    this.requestConfirm('¿Deseas borrar este banner publicitario?', async () => {
+                        try {
+                            if (this.dbReady) {
+                                await window.dbService.deleteAd(id);
+                            } else {
+                                this.ads = this.ads.filter(a => a.id !== id);
+                            }
+                            this.showToast('Publicidad eliminada.');
+                        } catch (err) {
+                            console.error(err);
+                            this.showToast('Error al eliminar la publicidad.', 'error');
+                        }
                     });
                 },
 
-                // Merchant
+                // Registro de Comerciante
                 registerMerchant() {
                     const exists = this.stores.find(s => s.email === this.registerForm.email);
                     if (exists) {
@@ -1000,33 +1552,44 @@
                         return;
                     }
 
-                    // Simulación de validación de pago Mercado Pago exitosa
                     this.showToast('Pago validado. Creando tu tienda...', 'success');
                     
-                    setTimeout(() => {
-                        const newId = this.stores.length ? Math.max(...this.stores.map(s => s.id)) + 1 : 1;
-                        const newStore = { ...this.registerForm, id: newId, status: 'active', logo: null, cover: null };
-                        
-                        this.stores.push(newStore);
-                        this.currentSession = { role: 'merchant', ...newStore };
-                        this.currentView = 'merchant_dashboard';
-                        this.registerForm = { name: '', rubro: '', description: '', whatsapp: '', email: '', password: '' };
-                        
-                        this.showToast('¡Suscripción activa! Bienvenido a tu panel.');
+                    setTimeout(async () => {
+                        try {
+                            const storePayload = { ...this.registerForm, status: 'active', logo: null, cover: null };
+                            let newId = 'local-' + Date.now();
+                            if (this.dbReady) {
+                                newId = await window.dbService.createStore(storePayload);
+                            } else {
+                                this.stores.push({ ...storePayload, id: newId });
+                            }
+                            
+                            this.currentSession = { role: 'merchant', id: newId, ...storePayload };
+                            this.currentView = 'merchant_dashboard';
+                            this.registerForm = { name: '', rubro: '', description: '', whatsapp: '', email: '', password: '' };
+                            
+                            this.showToast('¡Suscripción activa! Bienvenido a tu panel.');
+                        } catch (err) {
+                            console.error(err);
+                            this.showToast('Error al registrar el comercio en la nube.', 'error');
+                        }
                     }, 1500);
                 },
 
-                // Products
+                // Gestión de Productos del Comerciante
                 openProductModal() {
                     this.productForm = { id: null, name: '', price: '', category: '', image: '', description: '' };
                     this.showProductModal = true;
                 },
 
-                handleImageUpload(event) {
+                async handleImageUpload(event) {
                     const file = event.target.files[0];
                     if (file) {
-                        // Crear una URL local para la previsualización de la imagen
-                        this.productForm.image = URL.createObjectURL(file);
+                        try {
+                            this.productForm.image = await this.compressImage(file, 600, 0.72);
+                        } catch (err) {
+                            this.showToast('Error al procesar la imagen.', 'error');
+                        }
                     }
                 },
 
@@ -1035,33 +1598,46 @@
                     this.showProductModal = true;
                 },
 
-                saveProduct() {
-                    if (this.productForm.id) {
-                        // Actualizar
-                        const index = this.products.findIndex(p => p.id === this.productForm.id);
-                        if (index !== -1) this.products[index] = { ...this.productForm };
-                        this.showToast('Producto actualizado correctamente.');
-                    } else {
-                        // Crear
-                        const newId = this.products.length ? Math.max(...this.products.map(p => p.id)) + 1 : 1;
-                        this.products.push({
+                async saveProduct() {
+                    try {
+                        const payload = {
                             ...this.productForm,
-                            id: newId,
+                            price: Number(this.productForm.price),
                             storeId: this.currentSession.id
-                        });
-                        this.showToast('Nuevo producto subido con éxito.');
+                        };
+                        if (this.dbReady) {
+                            await window.dbService.saveProduct(payload);
+                        } else if (this.productForm.id) {
+                            const index = this.products.findIndex(p => p.id === this.productForm.id);
+                            if (index !== -1) this.products[index] = payload;
+                        } else {
+                            this.products.push({ ...payload, id: 'local-' + Date.now() });
+                        }
+                        this.showToast(this.productForm.id ? 'Producto actualizado correctamente.' : 'Nuevo producto subido con éxito.');
+                        this.showProductModal = false;
+                    } catch (err) {
+                        console.error(err);
+                        this.showToast('Error al guardar el producto.', 'error');
                     }
-                    this.showProductModal = false;
                 },
 
                 deleteProduct(id) {
-                    this.requestConfirm('¿Deseas eliminar este producto de tu catálogo permanentemente?', () => {
-                        this.products = this.products.filter(p => p.id !== id);
-                        this.showToast('Producto eliminado.');
+                    this.requestConfirm('¿Deseas eliminar este producto de tu catálogo permanentemente?', async () => {
+                        try {
+                            if (this.dbReady) {
+                                await window.dbService.deleteProduct(id);
+                            } else {
+                                this.products = this.products.filter(p => p.id !== id);
+                            }
+                            this.showToast('Producto eliminado.');
+                        } catch (err) {
+                            console.error(err);
+                            this.showToast('Error al eliminar el producto.', 'error');
+                        }
                     });
                 },
 
-                // UI Utils
+                // Utilidades de UI
                 requestConfirm(message, action) {
                     this.confirmMessage = message;
                     this.confirmAction = action;

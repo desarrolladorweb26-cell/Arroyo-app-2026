@@ -246,7 +246,7 @@
         <div x-show="currentView === 'register'" class="max-w-4xl mx-auto px-4 py-12">
             <div class="text-center mb-10">
                 <h2 class="text-3xl font-extrabold text-gray-900 mb-3">Vende online con <span x-text="platformSettings.appName"></span></h2>
-                <p class="text-gray-600">Crea tu tienda digital autogestionable en menos de 5 minutos.</p>
+                <p class="text-gray-600">Crea tu tienda digital autogestionable en menos de 5 minutos y empezás a vender desde acá.</p>
             </div>
 
             <div class="bg-white rounded-3xl shadow-xl overflow-hidden flex flex-col md:flex-row border border-gray-100">
@@ -280,7 +280,7 @@
                     <form @submit.prevent="registerMerchant" class="space-y-5">
                         <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
                             <div>
-                                <label class="block text-sm font-medium text-gray-700 mb-1">Nombre del Local</label>
+                                <label class="block text-sm font-medium text-gray-700 mb-1">Nombre del Local o Fantasia</label>
                                 <input type="text" x-model="registerForm.name" required class="w-full px-4 py-2.5 rounded-xl border border-gray-300 focus:ring-2 focus:ring-brand-500 focus:border-brand-500 outline-none transition bg-gray-50" placeholder="Ej. Tienda Los Pinos">
                             </div>
                             <div>
@@ -774,8 +774,8 @@
                 <div class="w-14 h-14 bg-brand-100 text-brand-600 rounded-2xl flex items-center justify-center mx-auto mb-3 text-2xl shadow-inner">
                     <i class="fa-solid fa-mobile-screen-button"></i>
                 </div>
-                <h3 class="text-xl font-bold text-gray-900">Instalar <span x-text="platformSettings.appName"></span></h3>
-                <p class="text-xs text-gray-500 mt-1">Accede directo desde la pantalla de inicio de tu celular.</p>
+                <h3 class="text-xl font-bold text-gray-900">Instalar App <span x-text="platformSettings.appName"></span></h3>
+                <p class="text-xs text-gray-500 mt-1">Accede directo desde la pantalla de inicio de tu celular más comodo y ajustable.</p>
             </div>
             <div class="space-y-3 text-sm text-gray-700 bg-gray-50 p-4 rounded-2xl border border-gray-100">
                 <template x-if="isIOS">
@@ -858,7 +858,14 @@
         //     appId: "1:123456789:web:abcdef"
         // };
         // =========================================================================
-        const EXTERNAL_FIREBASE_CONFIG = null;
+        const EXTERNAL_FIREBASE_CONFIG = {
+  apiKey: "AIzaSyDM_0VY0PrFC4HxGf8NPI_LflOl-z94r0Q",
+  authDomain: "arroyo-app-2026.firebaseapp.com",
+  projectId: "arroyo-app-2026",
+  storageBucket: "arroyo-app-2026.firebasestorage.app",
+  messagingSenderId: "56451871433",
+  appId: "1:56451871433:web:9b7ac31dea942fe9eed318"
+};
 
         const firebaseConfig = typeof __firebase_config !== 'undefined'
             ? JSON.parse(__firebase_config)
@@ -933,15 +940,15 @@
                         appName: 'Arroyo App 2026',
                         city: 'Arroyo Seco',
                         currency: '$',
-                        subscriptionFee: 15000,
-                        rubros: ['Indumentaria', 'Gastronomía', 'Ferretería', 'Tecnología', 'Servicios']
+                        subscriptionFee: 30000,
+                        rubros: ['Indumentaria', 'Gastronomía', 'Ferretería', 'Tecnología', 'Servicios', 'Otros' ]
                     });
 
                     await setDoc(publicDoc('config', 'admin'), {
                         name: 'Administrador Principal',
                         email: 'admin@arroyoapp.com',
                         password: 'admin123',
-                        phone: '5493410000000'
+                        phone: '5493402553700'
                     });
 
                     await setDoc(publicDoc('stores', 'demo-store-1'), {
@@ -1113,17 +1120,17 @@
                     appName: 'Arroyo App 2026',
                     city: 'Arroyo Seco',
                     currency: '$',
-                    subscriptionFee: 15000
+                    subscriptionFee: 30000
                 },
                 adminProfile: {
                     name: 'Administrador Principal',
                     email: 'admin@arroyoapp.com',
                     password: 'admin123',
-                    phone: '5493410000000'
+                    phone: '5493402553700'
                 },
 
                 // Listas de datos
-                rubros: ['Indumentaria', 'Gastronomía', 'Ferretería', 'Tecnología', 'Servicios'],
+                rubros: ['Indumentaria', 'Gastronomía', 'Ferretería', 'Tecnología', 'Servicios',  'Otros'],
                 newRubroName: '',
                 
                 ads: [
@@ -1159,10 +1166,10 @@
                             await window.dbService.init({
                                 onPlatform: (data) => {
                                     this.platformSettings = {
-                                        appName: data.appName || 'Arroyo App 2026',
+                                        appName: data.appName || 'Arroyo App 2027',
                                         city: data.city || 'Arroyo Seco',
                                         currency: data.currency || '$',
-                                        subscriptionFee: data.subscriptionFee ?? 15000
+                                        subscriptionFee: data.subscriptionFee ?? 30000
                                     };
                                     if (Array.isArray(data.rubros)) {
                                         this.rubros = data.rubros;
@@ -1245,9 +1252,9 @@
 
                     Promise.all([createIconBlobUrl(192), createIconBlobUrl(512)]).then(([icon192, icon512]) => {
                         const manifest = {
-                            name: this.platformSettings.appName || 'Arroyo App 2026',
-                            short_name: 'Arroyo App',
-                            description: 'El shopping digital de los comercios locales.',
+                            name: this.platformSettings.appName || 'Arroyo App 2027',
+                            short_name: 'Arroyo App 2027',
+                            description: 'El shopping digital de los comercios locales dentro de una App web.',
                             start_url: window.location.href,
                             display: 'standalone',
                             background_color: '#f8fafc',

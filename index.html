@@ -1,0 +1,1090 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Arroyo App 2026 - E-commerce Local</title>
+    
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.13.3/dist/cdn.min.js"></script>
+
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: { sans: ['Inter', 'sans-serif'] },
+                    colors: {
+                        brand: { 50: '#f0fdf4', 100: '#dcfce7', 400: '#4ade80', 500: '#22c55e', 600: '#16a34a', 700: '#15803d', 900: '#14532d' }
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        body { background-color: #f8fafc; }
+        .glass-nav { background: rgba(255, 255, 255, 0.9); backdrop-filter: blur(10px); }
+        .no-scrollbar::-webkit-scrollbar { display: none; }
+        .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+        [x-cloak] { display: none !important; }
+    </style>
+</head>
+<body x-data="arroyoApp()" x-cloak class="text-gray-800 antialiased flex flex-col min-h-screen">
+
+    <nav class="glass-nav sticky top-0 z-40 border-b border-gray-200 shadow-sm">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between items-center h-16">
+                <!-- Logo -->
+                <div class="flex-shrink-0 flex items-center cursor-pointer" @click="currentView = 'home'; currentStoreView = null">
+                    <div class="w-10 h-10 bg-brand-600 text-white rounded-xl flex items-center justify-center text-xl font-bold shadow-lg shadow-brand-500/30">
+                        <i class="fa-solid fa-store"></i>
+                    </div>
+                    <span class="ml-3 font-bold text-xl tracking-tight text-gray-900" x-text="platformSettings.appName"></span>
+                </div>
+
+                <!-- Menú Desktop -->
+                <div class="hidden md:flex space-x-4 items-center">
+                    <template x-if="!currentSession">
+                        <div class="flex space-x-4">
+                            <button @click="currentView = 'home'" class="text-gray-600 hover:text-brand-600 font-medium px-3 py-2 transition">Inicio</button>
+                            <button @click="currentView = 'register'" class="text-gray-600 hover:text-brand-600 font-medium px-3 py-2 transition">Suma tu Comercio</button>
+                            <button @click="openLoginModal('merchant')" class="bg-gray-100 hover:bg-gray-200 text-gray-800 font-semibold px-5 py-2 rounded-xl transition">Acceso Comercios</button>
+                            <button @click="openLoginModal('admin')" class="text-xs text-gray-400 hover:text-gray-600 underline px-2 py-2">cPanel</button>
+                        </div>
+                    </template>
+                    <template x-if="currentSession">
+                        <div class="flex items-center space-x-4">
+                            <span class="text-sm font-medium text-gray-600">Hola, <span x-text="currentSession.name || currentSession.appName"></span></span>
+                            <button @click="logout()" class="bg-rose-100 hover:bg-rose-200 text-rose-700 font-semibold px-4 py-2 rounded-xl text-sm transition">Cerrar Sesión</button>
+                        </div>
+                    </template>
+                </div>
+
+                <!-- Botón Menú Mobile -->
+                <div class="md:hidden flex items-center">
+                    <button @click="mobileMenuOpen = !mobileMenuOpen" class="text-gray-600 hover:text-gray-900 focus:outline-none">
+                        <i class="fa-solid fa-bars text-2xl"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+        
+        <div x-show="mobileMenuOpen" class="md:hidden bg-white border-t border-gray-200 absolute w-full shadow-lg z-50">
+            <div class="px-4 pt-2 pb-4 space-y-2">
+                <template x-if="!currentSession">
+                    <div>
+                        <button @click="currentView = 'home'; mobileMenuOpen = false" class="block w-full text-left px-3 py-2 text-gray-700 font-medium hover:bg-gray-50 rounded-md">Inicio</button>
+                        <button @click="currentView = 'register'; mobileMenuOpen = false" class="block w-full text-left px-3 py-2 text-brand-600 font-medium hover:bg-brand-50 rounded-md">Suma tu Comercio</button>
+                        <button @click="openLoginModal('merchant'); mobileMenuOpen = false" class="block w-full text-left px-3 py-2 text-gray-700 font-medium hover:bg-gray-50 rounded-md">Acceso Comercios</button>
+                        <button @click="openLoginModal('admin'); mobileMenuOpen = false" class="block w-full text-left px-3 py-2 text-gray-400 text-sm hover:bg-gray-50 rounded-md">cPanel Administrador</button>
+                    </div>
+                </template>
+                <template x-if="currentSession">
+                    <button @click="logout(); mobileMenuOpen = false" class="block w-full text-left px-3 py-2 text-rose-600 font-medium hover:bg-rose-50 rounded-md">Cerrar Sesión</button>
+                </template>
+            </div>
+        </div>
+    </nav>
+
+    <!-- MAIN CONTENT AREA -->
+    <main class="flex-grow w-full">
+
+        <div x-show="currentView === 'home'" class="w-full">
+            <!-- Hero -->
+            <div class="bg-brand-600 text-white py-16 px-4 text-center">
+                <h1 class="text-4xl md:text-5xl font-extrabold tracking-tight mb-4">El shopping digital de <span x-text="platformSettings.city"></span></h1>
+                <p class="text-lg md:text-xl text-brand-100 mb-8 max-w-2xl mx-auto">Encuentra los mejores productos de los comercios locales. Compra directo, sin intermediarios.</p>
+                <div class="flex justify-center space-x-4">
+                    <button @click="currentView = 'register'" class="bg-white text-brand-700 hover:bg-gray-50 font-bold py-3 px-8 rounded-full shadow-lg transition transform hover:-translate-y-1">Vender aquí</button>
+                </div>
+            </div>
+
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+                
+                <!-- Banners Publicitarios -->
+                <div class="mb-8" x-show="activeAds().length > 0">
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        <template x-for="ad in activeAds()" :key="ad.id">
+                            <a :href="ad.link" target="_blank" class="block rounded-2xl overflow-hidden shadow-sm hover:shadow-xl transition group relative">
+                                <img :src="ad.image" class="w-full h-32 md:h-40 object-cover group-hover:scale-105 transition duration-500" :alt="ad.title">
+                                <div class="absolute inset-0 bg-gradient-to-t from-black/40 to-transparent"></div>
+                                <span class="absolute bottom-3 left-4 text-white font-bold text-sm drop-shadow-md" x-text="ad.title"></span>
+                                <span class="absolute top-3 right-3 bg-white/90 text-xs font-bold px-2 py-0.5 rounded text-gray-700 shadow">Publicidad</span>
+                            </a>
+                        </template>
+                    </div>
+                </div>
+
+                <!-- Filtros Rubros -->
+                <div class="flex space-x-3 overflow-x-auto pb-4 mb-8 no-scrollbar">
+                    <button @click="selectedRubro = 'Todos'" :class="selectedRubro === 'Todos' ? 'bg-gray-900 text-white' : 'bg-white text-gray-600 border border-gray-200 hover:border-gray-300'" class="px-5 py-2 rounded-full font-medium text-sm whitespace-nowrap transition shadow-sm">Todos</button>
+                    <template x-for="rubro in rubros" :key="rubro">
+                        <button @click="selectedRubro = rubro" :class="selectedRubro === rubro ? 'bg-brand-600 text-white border-brand-600' : 'bg-white text-gray-600 border border-gray-200 hover:border-brand-300'" class="px-5 py-2 rounded-full font-medium text-sm whitespace-nowrap transition shadow-sm" x-text="rubro"></button>
+                    </template>
+                </div>
+
+                <!-- Grid de Tiendas -->
+                <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+                    <template x-for="store in filteredStores()" :key="store.id">
+                        <div class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden hover:shadow-xl transition duration-300 group cursor-pointer" @click="openStorefront(store)">
+                            <div class="h-32 bg-gray-100 relative">
+                                <img :src="store.cover || 'https://placehold.co/600x400/e2e8f0/64748b?text=Portada'" class="w-full h-full object-cover group-hover:scale-105 transition duration-500">
+                                <div class="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent"></div>
+                                <div class="absolute bottom-3 left-4 flex items-center space-x-3">
+                                    <div class="w-12 h-12 bg-white rounded-full p-1 shadow-md">
+                                        <img :src="store.logo || 'https://placehold.co/100x100/16a34a/ffffff?text='+store.name.charAt(0)" class="w-full h-full rounded-full object-cover">
+                                    </div>
+                                    <h3 class="text-white font-bold text-lg drop-shadow-md" x-text="store.name"></h3>
+                                </div>
+                            </div>
+                            <div class="p-4">
+                                <span class="inline-block px-2.5 py-1 bg-gray-100 text-gray-600 text-xs font-semibold rounded-md mb-2" x-text="store.rubro"></span>
+                                <p class="text-sm text-gray-500 mb-4 line-clamp-2" x-text="store.description"></p>
+                                <div class="flex justify-between items-center text-sm font-medium text-brand-600">
+                                    <span>Visitar tienda</span>
+                                    <i class="fa-solid fa-arrow-right"></i>
+                                </div>
+                            </div>
+                        </div>
+                    </template>
+                    <div x-show="filteredStores().length === 0" class="col-span-full text-center py-12 text-gray-500">
+                        <i class="fa-solid fa-store-slash text-4xl mb-3 opacity-50"></i>
+                        <p>No hay comercios registrados en este rubro todavía.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div x-show="currentView === 'storefront' && currentStoreView" class="w-full bg-white min-h-screen">
+            <template x-if="currentStoreView">
+                <div>
+                    <!-- Store Header -->
+                    <div class="bg-gray-900 text-white pt-16 pb-8 px-4 relative overflow-hidden">
+                        <div class="absolute inset-0 opacity-30">
+                            <img :src="currentStoreView.cover || 'https://placehold.co/1200x400/1f2937/1f2937'" class="w-full h-full object-cover blur-sm">
+                        </div>
+                        <div class="max-w-5xl mx-auto relative z-10 flex flex-col md:flex-row items-center md:items-start space-y-4 md:space-y-0 md:space-x-6 text-center md:text-left">
+                            <img :src="currentStoreView.logo || 'https://placehold.co/150x150/16a34a/ffffff?text='+currentStoreView.name.charAt(0)" class="w-24 h-24 rounded-2xl shadow-xl border-4 border-white/20">
+                            <div class="flex-1">
+                                <h1 class="text-3xl font-extrabold mb-1" x-text="currentStoreView.name"></h1>
+                                <p class="text-gray-300 text-sm mb-3" x-text="currentStoreView.rubro"></p>
+                                <p class="text-gray-200 max-w-xl" x-text="currentStoreView.description"></p>
+                            </div>
+                            <div class="flex-shrink-0">
+                                <a :href="'https://wa.me/'+currentStoreView.whatsapp" target="_blank" class="inline-flex items-center space-x-2 bg-green-500 hover:bg-green-600 text-white font-bold py-2.5 px-6 rounded-full shadow-lg transition">
+                                    <i class="fa-brands fa-whatsapp text-lg"></i>
+                                    <span>Contactar</span>
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Store Products -->
+                    <div class="max-w-5xl mx-auto px-4 py-12">
+                        <h2 class="text-2xl font-bold text-gray-900 mb-8 border-b pb-4">Nuestro Catálogo</h2>
+                        <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
+                            <template x-for="product in getStoreProducts(currentStoreView.id)" :key="product.id">
+                                <div class="bg-white rounded-xl border border-gray-200 shadow-sm hover:shadow-md transition overflow-hidden flex flex-col">
+                                    <div class="h-48 bg-gray-50 relative">
+                                        <img :src="product.image || 'https://placehold.co/400x300/f8fafc/94a3b8?text=Sin+Imagen'" class="w-full h-full object-cover">
+                                        <span class="absolute top-2 right-2 bg-white/90 backdrop-blur-sm px-2 py-1 rounded text-xs font-bold text-gray-700 shadow" x-text="product.category"></span>
+                                    </div>
+                                    <div class="p-5 flex-1 flex flex-col">
+                                        <h3 class="font-bold text-gray-900 text-lg leading-tight mb-1" x-text="product.name"></h3>
+                                        <p class="text-gray-500 text-sm mb-4 line-clamp-2 flex-1" x-text="product.description"></p>
+                                        <div class="flex justify-between items-center mt-auto">
+                                            <span class="text-xl font-extrabold text-brand-600" x-text="formatPrice(product.price)"></span>
+                                            <a :href="'https://wa.me/'+currentStoreView.whatsapp+'?text=Hola, me interesa el producto: '+product.name" target="_blank" class="w-10 h-10 rounded-full bg-gray-100 hover:bg-brand-100 text-gray-600 hover:text-brand-600 flex items-center justify-center transition">
+                                                <i class="fa-solid fa-cart-shopping"></i>
+                                            </a>
+                                        </div>
+                                    </div>
+                                </div>
+                            </template>
+                            <div x-show="getStoreProducts(currentStoreView.id).length === 0" class="col-span-full text-center py-12 text-gray-400">
+                                <i class="fa-solid fa-box-open text-4xl mb-3 opacity-50"></i>
+                                <p>Este comercio aún no ha subido productos.</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </template>
+        </div>
+
+        <div x-show="currentView === 'register'" class="max-w-4xl mx-auto px-4 py-12">
+            <div class="text-center mb-10">
+                <h2 class="text-3xl font-extrabold text-gray-900 mb-3">Vende online con <span x-text="platformSettings.appName"></span></h2>
+                <p class="text-gray-600">Crea tu tienda digital autogestionable en menos de 5 minutos.</p>
+            </div>
+
+            <div class="bg-white rounded-3xl shadow-xl overflow-hidden flex flex-col md:flex-row border border-gray-100">
+                <!-- Plan Card -->
+                <div class="md:w-1/3 bg-gray-900 text-white p-8 md:p-10 flex flex-col justify-center relative overflow-hidden">
+                    <div class="absolute top-0 right-0 -mr-8 -mt-8 w-32 h-32 rounded-full bg-brand-500 opacity-20 blur-2xl"></div>
+                    <div class="relative z-10">
+                        <div class="inline-flex items-center space-x-2 bg-brand-500/20 text-brand-300 text-xs font-bold px-3 py-1 rounded-full mb-6">
+                            <i class="fa-solid fa-bolt"></i><span>Plan Emprendedor</span>
+                        </div>
+                        <h3 class="text-4xl font-extrabold mb-2" x-text="formatPrice(platformSettings.subscriptionFee)"></h3>
+                        <p class="text-gray-400 text-sm mb-8">/ año (Cobro recurrente)</p>
+                        
+                        <ul class="space-y-4 text-sm text-gray-300 mb-8">
+                            <li class="flex items-start space-x-3"><i class="fa-solid fa-check text-brand-400 mt-0.5"></i><span>Panel propio para editar precios e imágenes.</span></li>
+                            <li class="flex items-start space-x-3"><i class="fa-solid fa-check text-brand-400 mt-0.5"></i><span>Productos ilimitados.</span></li>
+                            <li class="flex items-start space-x-3"><i class="fa-solid fa-check text-brand-400 mt-0.5"></i><span>Botón directo a tu WhatsApp.</span></li>
+                            <li class="flex items-start space-x-3"><i class="fa-solid fa-check text-brand-400 mt-0.5"></i><span>Alojamiento en nuestros servidores.</span></li>
+                        </ul>
+
+                        <div class="bg-white/10 p-4 rounded-xl text-center border border-white/10">
+                            <img src="https://logospng.org/download/mercado-pago/logo-mercado-pago-icono-1024.png" alt="Mercado Pago" class="w-8 h-8 mx-auto mb-2 opacity-80">
+                            <p class="text-xs text-gray-400">Suscripción gestionada 100% segura vía Mercado Pago.</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Formulary -->
+                <div class="md:w-2/3 p-8 md:p-10">
+                    <h3 class="text-xl font-bold text-gray-900 mb-6">Datos de tu Comercio</h3>
+                    <form @submit.prevent="registerMerchant" class="space-y-5">
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-1">Nombre del Local</label>
+                                <input type="text" x-model="registerForm.name" required class="w-full px-4 py-2.5 rounded-xl border border-gray-300 focus:ring-2 focus:ring-brand-500 focus:border-brand-500 outline-none transition bg-gray-50" placeholder="Ej. Tienda Los Pinos">
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-1">Rubro Principal</label>
+                                <select x-model="registerForm.rubro" required class="w-full px-4 py-2.5 rounded-xl border border-gray-300 focus:ring-2 focus:ring-brand-500 outline-none transition bg-gray-50">
+                                    <option value="" disabled>Seleccionar...</option>
+                                    <template x-for="rubro in rubros" :key="rubro">
+                                        <option :value="rubro" x-text="rubro"></option>
+                                    </template>
+                                </select>
+                            </div>
+                        </div>
+
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Breve Descripción</label>
+                            <input type="text" x-model="registerForm.description" class="w-full px-4 py-2.5 rounded-xl border border-gray-300 focus:ring-2 focus:ring-brand-500 outline-none transition bg-gray-50" placeholder="¿Qué vendes?">
+                        </div>
+
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-1">WhatsApp (con cód. área)</label>
+                                <input type="number" x-model="registerForm.whatsapp" required class="w-full px-4 py-2.5 rounded-xl border border-gray-300 focus:ring-2 focus:ring-brand-500 outline-none transition bg-gray-50" placeholder="5491122334455">
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-1">Email (Usuario de acceso)</label>
+                                <input type="email" x-model="registerForm.email" required class="w-full px-4 py-2.5 rounded-xl border border-gray-300 focus:ring-2 focus:ring-brand-500 outline-none transition bg-gray-50" placeholder="tu@email.com">
+                            </div>
+                        </div>
+
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Crear Contraseña Segura</label>
+                            <input type="password" x-model="registerForm.password" required class="w-full px-4 py-2.5 rounded-xl border border-gray-300 focus:ring-2 focus:ring-brand-500 outline-none transition bg-gray-50" placeholder="••••••••">
+                        </div>
+
+                        <div class="pt-4 mt-6 border-t border-gray-100">
+                            <button type="submit" class="w-full bg-brand-600 hover:bg-brand-700 text-white font-bold py-3.5 rounded-xl shadow-lg hover:shadow-xl transition flex justify-center items-center space-x-2">
+                                <span>Pagar Suscripción y Crear Tienda</span>
+                                <i class="fa-solid fa-arrow-right"></i>
+                            </button>
+                            <p class="text-center text-xs text-gray-500 mt-4">Al continuar, simularás el proceso de pago seguro y se activará tu panel.</p>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <div x-show="currentView === 'merchant_dashboard'" class="max-w-7xl mx-auto px-4 py-8">
+            <template x-if="currentSession && currentSession.role === 'merchant'">
+                <div>
+                    <!-- Dashboard Header -->
+                    <div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-8 bg-white p-6 rounded-2xl shadow-sm border border-gray-100">
+                        <div class="flex items-center space-x-4 mb-4 md:mb-0">
+                            <div class="w-16 h-16 bg-brand-100 text-brand-600 rounded-2xl flex items-center justify-center text-2xl font-bold border-2 border-brand-200">
+                                <i class="fa-solid fa-shop"></i>
+                            </div>
+                            <div>
+                                <h2 class="text-2xl font-bold text-gray-900" x-text="currentSession.name"></h2>
+                                <p class="text-sm text-gray-500">Panel de Control del Comercio</p>
+                            </div>
+                        </div>
+                        <div class="flex space-x-3 w-full md:w-auto">
+                            <button @click="openStorefront(currentSession)" class="flex-1 md:flex-none bg-gray-100 hover:bg-gray-200 text-gray-700 font-semibold py-2 px-4 rounded-xl transition flex items-center justify-center space-x-2">
+                                <i class="fa-regular fa-eye"></i> <span>Ver mi tienda</span>
+                            </button>
+                            <button @click="openProductModal()" class="flex-1 md:flex-none bg-brand-600 hover:bg-brand-700 text-white font-bold py-2 px-4 rounded-xl shadow transition flex items-center justify-center space-x-2">
+                                <i class="fa-solid fa-plus"></i> <span>Nuevo Producto</span>
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Products Table/Grid -->
+                    <div class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
+                        <div class="p-6 border-b border-gray-100 flex justify-between items-center">
+                            <h3 class="text-lg font-bold text-gray-900">Mis Productos</h3>
+                            <span class="bg-gray-100 text-gray-600 text-xs font-bold px-3 py-1 rounded-full" x-text="getMerchantProducts().length + ' ítems'"></span>
+                        </div>
+                        
+                        <div class="overflow-x-auto">
+                            <table class="w-full text-left border-collapse">
+                                <thead>
+                                    <tr class="bg-gray-50 text-gray-500 text-xs uppercase tracking-wider">
+                                        <th class="p-4 font-medium">Imagen</th>
+                                        <th class="p-4 font-medium">Nombre / Descripción</th>
+                                        <th class="p-4 font-medium">Categoría</th>
+                                        <th class="p-4 font-medium">Precio</th>
+                                        <th class="p-4 font-medium text-right">Acciones</th>
+                                    </tr>
+                                </thead>
+                                <tbody class="divide-y divide-gray-100 text-sm">
+                                    <template x-for="product in getMerchantProducts()" :key="product.id">
+                                        <tr class="hover:bg-gray-50/50 transition">
+                                            <td class="p-4">
+                                                <img :src="product.image || 'https://placehold.co/100x100/e2e8f0/94a3b8?text=Img'" class="w-12 h-12 rounded-lg object-cover border border-gray-200">
+                                            </td>
+                                            <td class="p-4">
+                                                <p class="font-bold text-gray-900" x-text="product.name"></p>
+                                                <p class="text-xs text-gray-500 truncate max-w-xs" x-text="product.description"></p>
+                                            </td>
+                                            <td class="p-4">
+                                                <span class="inline-block px-2 py-1 bg-gray-100 text-gray-600 rounded text-xs" x-text="product.category"></span>
+                                            </td>
+                                            <td class="p-4 font-bold text-gray-900" x-text="formatPrice(product.price)"></td>
+                                            <td class="p-4 text-right space-x-2">
+                                                <button @click="editProduct(product)" class="w-8 h-8 rounded-lg bg-blue-50 text-blue-600 hover:bg-blue-100 transition inline-flex items-center justify-center" title="Editar">
+                                                    <i class="fa-solid fa-pen"></i>
+                                                </button>
+                                                <button @click="deleteProduct(product.id)" class="w-8 h-8 rounded-lg bg-rose-50 text-rose-600 hover:bg-rose-100 transition inline-flex items-center justify-center" title="Eliminar">
+                                                    <i class="fa-solid fa-trash"></i>
+                                                </button>
+                                            </td>
+                                        </tr>
+                                    </template>
+                                    <tr x-show="getMerchantProducts().length === 0">
+                                        <td colspan="5" class="p-8 text-center text-gray-500">
+                                            <i class="fa-solid fa-inbox text-3xl mb-3 opacity-30"></i>
+                                            <p>Aún no has agregado productos a tu catálogo.</p>
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </template>
+        </div>
+
+        <div x-show="currentView === 'admin_dashboard'" class="max-w-7xl mx-auto px-4 py-8">
+            <template x-if="currentSession && currentSession.role === 'admin'">
+                <div class="flex flex-col md:flex-row gap-8">
+                    <!-- Admin Sidebar -->
+                    <div class="w-full md:w-64 flex-shrink-0">
+                        <div class="bg-gray-900 text-white rounded-2xl p-6 shadow-xl relative overflow-hidden">
+                            <div class="absolute -right-4 -bottom-4 opacity-10 text-9xl"><i class="fa-solid fa-screwdriver-wrench"></i></div>
+                            <div class="relative z-10">
+                                <h3 class="font-bold text-xl mb-1">cPanel Maestro</h3>
+                                <p class="text-xs text-brand-400 mb-6" x-text="adminProfile.email"></p>
+                                <nav class="space-y-2">
+                                    <button @click="adminTab = 'stores'" :class="adminTab === 'stores' ? 'bg-white/20' : 'hover:bg-white/10'" class="w-full text-left px-4 py-2.5 rounded-xl text-sm font-medium transition flex items-center space-x-3">
+                                        <i class="fa-solid fa-store w-4 text-center"></i> <span>Comercios Activos</span>
+                                    </button>
+                                    <button @click="adminTab = 'rubros'" :class="adminTab === 'rubros' ? 'bg-white/20' : 'hover:bg-white/10'" class="w-full text-left px-4 py-2.5 rounded-xl text-sm font-medium transition flex items-center space-x-3">
+                                        <i class="fa-solid fa-tags w-4 text-center"></i> <span>Rubros y Categorías</span>
+                                    </button>
+                                    <button @click="adminTab = 'ads'" :class="adminTab === 'ads' ? 'bg-white/20' : 'hover:bg-white/10'" class="w-full text-left px-4 py-2.5 rounded-xl text-sm font-medium transition flex items-center space-x-3">
+                                        <i class="fa-solid fa-bullhorn w-4 text-center"></i> <span>Publicidad</span>
+                                    </button>
+                                    <button @click="adminTab = 'settings'" :class="adminTab === 'settings' ? 'bg-white/20' : 'hover:bg-white/10'" class="w-full text-left px-4 py-2.5 rounded-xl text-sm font-medium transition flex items-center space-x-3">
+                                        <i class="fa-solid fa-sliders w-4 text-center"></i> <span>Configuración</span>
+                                    </button>
+                                    <button @click="adminTab = 'profile'" :class="adminTab === 'profile' ? 'bg-white/20' : 'hover:bg-white/10'" class="w-full text-left px-4 py-2.5 rounded-xl text-sm font-medium transition flex items-center space-x-3">
+                                        <i class="fa-solid fa-user-shield w-4 text-center"></i> <span>Datos Personales</span>
+                                    </button>
+                                </nav>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Admin Content -->
+                    <div class="flex-1 space-y-6">
+                        
+                        <!-- TAB: Stores -->
+                        <div x-show="adminTab === 'stores'" class="bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
+                            <h2 class="text-xl font-bold text-gray-900 mb-6">Gestión de Comercios</h2>
+                            <div class="space-y-4">
+                                <template x-for="store in stores" :key="store.id">
+                                    <div class="flex items-center justify-between p-4 border border-gray-100 rounded-xl hover:bg-gray-50 transition">
+                                        <div class="flex items-center space-x-4">
+                                            <div class="w-10 h-10 bg-brand-100 text-brand-700 rounded-lg flex items-center justify-center font-bold">
+                                                <span x-text="store.name.charAt(0)"></span>
+                                            </div>
+                                            <div>
+                                                <h4 class="font-bold text-gray-900 text-sm" x-text="store.name"></h4>
+                                                <p class="text-xs text-gray-500"><span x-text="store.email"></span> • <span x-text="store.rubro"></span></p>
+                                            </div>
+                                        </div>
+                                        <div class="flex items-center space-x-3">
+                                            <span class="px-2 py-1 text-xs font-bold rounded" :class="store.status === 'active' ? 'bg-green-100 text-green-700' : 'bg-orange-100 text-orange-700'" x-text="store.status === 'active' ? 'Activo' : 'Suspendido'"></span>
+                                            <button @click="openAdminEditStore(store)" class="text-blue-500 hover:text-blue-700 p-2 rounded-lg hover:bg-blue-50 transition" title="Editar datos">
+                                                <i class="fa-solid fa-pen"></i>
+                                            </button>
+                                            <button @click="deleteStore(store.id)" class="text-rose-500 hover:text-rose-700 p-2 rounded-lg hover:bg-rose-50 transition" title="Dar de baja">
+                                                <i class="fa-solid fa-ban"></i>
+                                            </button>
+                                        </div>
+                                    </div>
+                                </template>
+                            </div>
+                        </div>
+
+                        <!-- TAB: Rubros y Categorías -->
+                        <div x-show="adminTab === 'rubros'" class="bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
+                            <h2 class="text-xl font-bold text-gray-900 mb-6">Gestionar Rubros</h2>
+                            
+                            <form @submit.prevent="addRubro" class="flex space-x-3 mb-8">
+                                <input type="text" x-model="newRubroName" required class="flex-1 px-4 py-2.5 rounded-xl border border-gray-300 focus:ring-2 focus:ring-brand-500 outline-none" placeholder="Nuevo rubro (ej. Juguetería)">
+                                <button type="submit" class="bg-brand-600 hover:bg-brand-700 text-white font-bold py-2.5 px-6 rounded-xl shadow transition">Agregar</button>
+                            </form>
+
+                            <div class="space-y-2">
+                                <template x-for="rubro in rubros" :key="rubro">
+                                    <div class="flex justify-between items-center p-3 border border-gray-100 rounded-xl bg-gray-50">
+                                        <span class="font-medium text-gray-800" x-text="rubro"></span>
+                                        <button @click="removeRubro(rubro)" class="text-rose-500 hover:bg-rose-100 p-2 rounded-lg transition">
+                                            <i class="fa-solid fa-trash"></i>
+                                        </button>
+                                    </div>
+                                </template>
+                            </div>
+                        </div>
+
+                        <!-- TAB: Publicidad -->
+                        <div x-show="adminTab === 'ads'" class="bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
+                            <div class="flex justify-between items-center mb-6">
+                                <h2 class="text-xl font-bold text-gray-900">Banners Publicitarios</h2>
+                                <button @click="openAdModal()" class="bg-brand-600 hover:bg-brand-700 text-white font-bold py-2 px-4 rounded-xl shadow transition text-sm">
+                                    <i class="fa-solid fa-plus mr-1"></i> Nuevo Banner
+                                </button>
+                            </div>
+                            
+                            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                <template x-for="ad in ads" :key="ad.id">
+                                    <div class="border border-gray-200 rounded-xl overflow-hidden relative group">
+                                        <img :src="ad.image" class="w-full h-32 object-cover">
+                                        <div class="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition flex items-center justify-center space-x-3">
+                                            <button @click="openAdModal(ad)" class="w-10 h-10 bg-white text-blue-600 rounded-full flex items-center justify-center hover:bg-blue-50">
+                                                <i class="fa-solid fa-pen"></i>
+                                            </button>
+                                            <button @click="deleteAd(ad.id)" class="w-10 h-10 bg-white text-rose-600 rounded-full flex items-center justify-center hover:bg-rose-50">
+                                                <i class="fa-solid fa-trash"></i>
+                                            </button>
+                                        </div>
+                                        <div class="p-3 bg-white flex justify-between items-center">
+                                            <div>
+                                                <p class="font-bold text-sm text-gray-900 truncate" x-text="ad.title"></p>
+                                                <p class="text-xs text-gray-500" x-text="ad.active ? 'Activo (Visible)' : 'Pausado'"></p>
+                                            </div>
+                                            <span class="w-3 h-3 rounded-full" :class="ad.active ? 'bg-green-500' : 'bg-gray-300'"></span>
+                                        </div>
+                                    </div>
+                                </template>
+                                <div x-show="ads.length === 0" class="col-span-full py-8 text-center text-gray-400">
+                                    <i class="fa-solid fa-image text-3xl mb-2 opacity-50"></i>
+                                    <p class="text-sm">No hay publicidad cargada.</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- TAB: Settings (Platform) -->
+                        <div x-show="adminTab === 'settings'" class="bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
+                            <h2 class="text-xl font-bold text-gray-900 mb-6">Configuración de la Plataforma</h2>
+                            <form @submit.prevent="savePlatformSettings" class="space-y-5">
+                                <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
+                                    <div>
+                                        <label class="block text-sm font-medium text-gray-700 mb-1">Nombre de la Aplicación</label>
+                                        <input type="text" x-model="platformSettings.appName" class="w-full px-4 py-2.5 rounded-xl border border-gray-300 focus:ring-2 focus:ring-brand-500 outline-none">
+                                    </div>
+                                    <div>
+                                        <label class="block text-sm font-medium text-gray-700 mb-1">Ciudad / Región</label>
+                                        <input type="text" x-model="platformSettings.city" class="w-full px-4 py-2.5 rounded-xl border border-gray-300 focus:ring-2 focus:ring-brand-500 outline-none">
+                                    </div>
+                                    <div>
+                                        <label class="block text-sm font-medium text-gray-700 mb-1">Moneda ($)</label>
+                                        <input type="text" x-model="platformSettings.currency" class="w-full px-4 py-2.5 rounded-xl border border-gray-300 focus:ring-2 focus:ring-brand-500 outline-none">
+                                    </div>
+                                    <div>
+                                        <label class="block text-sm font-medium text-gray-700 mb-1">Valor Suscripción Anual</label>
+                                        <input type="number" x-model="platformSettings.subscriptionFee" class="w-full px-4 py-2.5 rounded-xl border border-gray-300 focus:ring-2 focus:ring-brand-500 outline-none">
+                                    </div>
+                                </div>
+                                <div class="pt-4 text-right">
+                                    <button type="submit" class="bg-brand-600 hover:bg-brand-700 text-white font-bold py-2.5 px-6 rounded-xl shadow transition">Guardar Cambios</button>
+                                </div>
+                            </form>
+                        </div>
+
+                        <!-- TAB: Profile (Admin Personal Data) -->
+                        <div x-show="adminTab === 'profile'" class="bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
+                            <h2 class="text-xl font-bold text-gray-900 mb-6">Datos Personales del Administrador</h2>
+                            <form @submit.prevent="saveAdminProfile" class="space-y-5">
+                                <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
+                                    <div>
+                                        <label class="block text-sm font-medium text-gray-700 mb-1">Nombre</label>
+                                        <input type="text" x-model="adminProfile.name" class="w-full px-4 py-2.5 rounded-xl border border-gray-300 focus:ring-2 focus:ring-brand-500 outline-none">
+                                    </div>
+                                    <div>
+                                        <label class="block text-sm font-medium text-gray-700 mb-1">Teléfono Soporte</label>
+                                        <input type="text" x-model="adminProfile.phone" class="w-full px-4 py-2.5 rounded-xl border border-gray-300 focus:ring-2 focus:ring-brand-500 outline-none">
+                                    </div>
+                                </div>
+                                <div class="border-t border-gray-100 pt-5 mt-5">
+                                    <h3 class="text-sm font-bold text-gray-900 mb-4">Credenciales de Acceso</h3>
+                                    <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
+                                        <div>
+                                            <label class="block text-sm font-medium text-gray-700 mb-1">Email Maestro</label>
+                                            <input type="email" x-model="adminProfile.email" required class="w-full px-4 py-2.5 rounded-xl border border-gray-300 focus:ring-2 focus:ring-brand-500 outline-none">
+                                        </div>
+                                        <div>
+                                            <label class="block text-sm font-medium text-gray-700 mb-1">Nueva Contraseña</label>
+                                            <input type="password" x-model="adminProfile.password" required class="w-full px-4 py-2.5 rounded-xl border border-gray-300 focus:ring-2 focus:ring-brand-500 outline-none" placeholder="Actualizar clave...">
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="pt-4 text-right">
+                                    <button type="submit" class="bg-gray-900 hover:bg-black text-white font-bold py-2.5 px-6 rounded-xl shadow transition">Actualizar Perfil</button>
+                                </div>
+                            </form>
+                        </div>
+
+                    </div>
+                </div>
+            </template>
+        </div>
+
+    </main>
+
+    
+    <!-- Modal de Login -->
+    <div x-show="showLoginModal" class="fixed inset-0 bg-black/60 backdrop-blur-sm z-[60] flex items-center justify-center p-4" x-transition style="display: none;">
+        <div @click.away="showLoginModal = false" class="bg-white rounded-3xl max-w-sm w-full p-8 shadow-2xl relative">
+            <button @click="showLoginModal = false" class="absolute top-4 right-4 text-gray-400 hover:text-gray-700"><i class="fa-solid fa-xmark text-xl"></i></button>
+            
+            <div class="text-center mb-6">
+                <div class="w-12 h-12 mx-auto rounded-full flex items-center justify-center mb-3" :class="loginType === 'admin' ? 'bg-gray-900 text-white' : 'bg-brand-100 text-brand-600'">
+                    <i class="fa-solid" :class="loginType === 'admin' ? 'fa-user-shield' : 'fa-shop'"></i>
+                </div>
+                <h3 class="text-xl font-bold text-gray-900" x-text="loginType === 'admin' ? 'Acceso cPanel' : 'Ingreso Comercio'"></h3>
+                <p class="text-xs text-gray-500 mt-1" x-text="loginType === 'admin' ? 'Solo para el administrador de la app.' : 'Gestiona tu catálogo de productos.'"></p>
+            </div>
+
+            <form @submit.prevent="handleLogin" class="space-y-4">
+                <div>
+                    <label class="block text-xs font-semibold text-gray-600 uppercase mb-1">Email</label>
+                    <input type="email" x-model="loginForm.email" required class="w-full px-4 py-3 rounded-xl border border-gray-300 focus:ring-2 focus:ring-brand-500 outline-none bg-gray-50 text-sm">
+                </div>
+                <div>
+                    <label class="block text-xs font-semibold text-gray-600 uppercase mb-1">Clave</label>
+                    <input type="password" x-model="loginForm.password" required class="w-full px-4 py-3 rounded-xl border border-gray-300 focus:ring-2 focus:ring-brand-500 outline-none bg-gray-50 text-sm">
+                </div>
+                <button type="submit" class="w-full font-bold py-3.5 rounded-xl shadow-lg transition mt-4" :class="loginType === 'admin' ? 'bg-gray-900 hover:bg-black text-white' : 'bg-brand-600 hover:bg-brand-700 text-white'">
+                    Ingresar
+                </button>
+                <div x-show="loginType === 'admin'" class="text-center mt-4">
+                    <p class="text-xs text-gray-400">Datos demo admin: admin@arroyoapp2026.com / admin123</p>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Modal de Producto (Crear/Editar) -->
+    <div x-show="showProductModal" class="fixed inset-0 bg-black/60 backdrop-blur-sm z-[60] flex items-center justify-center p-4" x-transition style="display: none;">
+        <div @click.away="showProductModal = false" class="bg-white rounded-3xl max-w-md w-full p-8 shadow-2xl relative max-h-[90vh] overflow-y-auto no-scrollbar">
+            <button @click="showProductModal = false" class="absolute top-4 right-4 text-gray-400 hover:text-gray-700"><i class="fa-solid fa-xmark text-xl"></i></button>
+            <h3 class="text-xl font-bold text-gray-900 mb-6" x-text="productForm.id ? 'Editar Producto' : 'Subir Nuevo Producto'"></h3>
+            
+            <form @submit.prevent="saveProduct" class="space-y-4">
+                
+                <!-- Subida de Imagen -->
+                <div class="border-2 border-dashed border-gray-300 rounded-2xl p-4 text-center relative hover:bg-gray-50 transition group cursor-pointer">
+                    <input type="file" accept="image/*" @change="handleImageUpload" class="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10">
+                    <template x-if="productForm.image">
+                        <img :src="productForm.image" class="w-full h-32 object-contain mb-2 rounded-lg">
+                    </template>
+                    <template x-if="!productForm.image">
+                        <div class="py-6 text-gray-400 group-hover:text-brand-500 transition">
+                            <i class="fa-solid fa-cloud-arrow-up text-3xl mb-2"></i>
+                            <p class="text-sm font-medium">Toca para subir imagen</p>
+                        </div>
+                    </template>
+                </div>
+
+                <div>
+                    <label class="block text-xs font-semibold text-gray-600 uppercase mb-1">Nombre del producto</label>
+                    <input type="text" x-model="productForm.name" required class="w-full px-4 py-2.5 rounded-xl border border-gray-300 focus:ring-2 focus:ring-brand-500 outline-none text-sm bg-gray-50">
+                </div>
+                
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-xs font-semibold text-gray-600 uppercase mb-1">Precio ($)</label>
+                        <input type="number" step="0.01" x-model="productForm.price" required class="w-full px-4 py-2.5 rounded-xl border border-gray-300 focus:ring-2 focus:ring-brand-500 outline-none text-sm bg-gray-50">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold text-gray-600 uppercase mb-1">Categoría Interna</label>
+                        <input type="text" x-model="productForm.category" required class="w-full px-4 py-2.5 rounded-xl border border-gray-300 focus:ring-2 focus:ring-brand-500 outline-none text-sm bg-gray-50" placeholder="Ej. Remeras">
+                    </div>
+                </div>
+
+                <div>
+                    <label class="block text-xs font-semibold text-gray-600 uppercase mb-1">Descripción</label>
+                    <textarea x-model="productForm.description" rows="3" required class="w-full px-4 py-2.5 rounded-xl border border-gray-300 focus:ring-2 focus:ring-brand-500 outline-none text-sm bg-gray-50 resize-none"></textarea>
+                </div>
+
+                <div class="pt-2">
+                    <button type="submit" class="w-full bg-brand-600 hover:bg-brand-700 text-white font-bold py-3.5 rounded-xl shadow-lg transition">
+                        Guardar en mi Tienda
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Modal Admin: Editar Comercio -->
+    <div x-show="showAdminEditStoreModal" class="fixed inset-0 bg-black/60 backdrop-blur-sm z-[60] flex items-center justify-center p-4" x-transition style="display: none;">
+        <div @click.away="showAdminEditStoreModal = false" class="bg-white rounded-3xl max-w-md w-full p-8 shadow-2xl relative">
+            <button @click="showAdminEditStoreModal = false" class="absolute top-4 right-4 text-gray-400 hover:text-gray-700"><i class="fa-solid fa-xmark text-xl"></i></button>
+            <h3 class="text-xl font-bold text-gray-900 mb-6">Editar Datos del Comercio</h3>
+            
+            <form @submit.prevent="saveAdminEditStore" class="space-y-4">
+                <div>
+                    <label class="block text-xs font-semibold text-gray-600 uppercase mb-1">Nombre</label>
+                    <input type="text" x-model="adminStoreForm.name" required class="w-full px-4 py-2.5 rounded-xl border border-gray-300 focus:ring-2 focus:ring-brand-500 outline-none text-sm">
+                </div>
+                <div>
+                    <label class="block text-xs font-semibold text-gray-600 uppercase mb-1">Rubro</label>
+                    <select x-model="adminStoreForm.rubro" required class="w-full px-4 py-2.5 rounded-xl border border-gray-300 focus:ring-2 focus:ring-brand-500 outline-none text-sm bg-white">
+                        <template x-for="rubro in rubros" :key="rubro">
+                            <option :value="rubro" x-text="rubro"></option>
+                        </template>
+                    </select>
+                </div>
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-xs font-semibold text-gray-600 uppercase mb-1">Email Acceso</label>
+                        <input type="email" x-model="adminStoreForm.email" required class="w-full px-4 py-2.5 rounded-xl border border-gray-300 focus:ring-2 focus:ring-brand-500 outline-none text-sm">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold text-gray-600 uppercase mb-1">WhatsApp</label>
+                        <input type="number" x-model="adminStoreForm.whatsapp" required class="w-full px-4 py-2.5 rounded-xl border border-gray-300 focus:ring-2 focus:ring-brand-500 outline-none text-sm">
+                    </div>
+                </div>
+                <div>
+                    <label class="block text-xs font-semibold text-gray-600 uppercase mb-1">Estado de Cuenta</label>
+                    <select x-model="adminStoreForm.status" class="w-full px-4 py-2.5 rounded-xl border border-gray-300 focus:ring-2 focus:ring-brand-500 outline-none text-sm bg-white">
+                        <option value="active">Activo (Al día)</option>
+                        <option value="suspended">Suspendido (Falta de pago)</option>
+                    </select>
+                </div>
+
+                <div class="pt-4">
+                    <button type="submit" class="w-full bg-gray-900 hover:bg-black text-white font-bold py-3.5 rounded-xl shadow-lg transition">Guardar Cambios</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Modal Admin: Publicidad -->
+    <div x-show="showAdModal" class="fixed inset-0 bg-black/60 backdrop-blur-sm z-[60] flex items-center justify-center p-4" x-transition style="display: none;">
+        <div @click.away="showAdModal = false" class="bg-white rounded-3xl max-w-md w-full p-8 shadow-2xl relative">
+            <button @click="showAdModal = false" class="absolute top-4 right-4 text-gray-400 hover:text-gray-700"><i class="fa-solid fa-xmark text-xl"></i></button>
+            <h3 class="text-xl font-bold text-gray-900 mb-6" x-text="adForm.id ? 'Editar Banner' : 'Subir Nuevo Banner'"></h3>
+            
+            <form @submit.prevent="saveAd" class="space-y-4">
+                <div class="border-2 border-dashed border-gray-300 rounded-2xl p-4 text-center relative hover:bg-gray-50 transition group cursor-pointer">
+                    <input type="file" accept="image/*" @change="handleAdImageUpload" class="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10">
+                    <template x-if="adForm.image">
+                        <img :src="adForm.image" class="w-full h-24 object-cover mb-2 rounded-lg">
+                    </template>
+                    <template x-if="!adForm.image">
+                        <div class="py-4 text-gray-400 group-hover:text-brand-500 transition">
+                            <i class="fa-solid fa-cloud-arrow-up text-3xl mb-2"></i>
+                            <p class="text-sm font-medium">Subir imagen (ej. 800x200px)</p>
+                        </div>
+                    </template>
+                </div>
+
+                <div>
+                    <label class="block text-xs font-semibold text-gray-600 uppercase mb-1">Nombre / Cliente</label>
+                    <input type="text" x-model="adForm.title" required class="w-full px-4 py-2.5 rounded-xl border border-gray-300 focus:ring-2 focus:ring-brand-500 outline-none text-sm">
+                </div>
+                
+                <div>
+                    <label class="block text-xs font-semibold text-gray-600 uppercase mb-1">Link de destino (URL)</label>
+                    <input type="url" x-model="adForm.link" class="w-full px-4 py-2.5 rounded-xl border border-gray-300 focus:ring-2 focus:ring-brand-500 outline-none text-sm" placeholder="https://...">
+                </div>
+
+                <div class="flex items-center space-x-3 pt-2">
+                    <input type="checkbox" id="adActive" x-model="adForm.active" class="w-5 h-5 text-brand-600 rounded border-gray-300 focus:ring-brand-500">
+                    <label for="adActive" class="text-sm font-medium text-gray-700">Banner visible al público</label>
+                </div>
+
+                <div class="pt-4">
+                    <button type="submit" class="w-full bg-brand-600 hover:bg-brand-700 text-white font-bold py-3.5 rounded-xl shadow-lg transition">Guardar Publicidad</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Custom Confirm Modal -->
+    <div x-show="showConfirmModal" class="fixed inset-0 bg-black/60 backdrop-blur-sm z-[70] flex items-center justify-center p-4" x-transition.opacity style="display: none;">
+        <div class="bg-white rounded-3xl max-w-sm w-full p-8 shadow-2xl text-center transform transition-all">
+            <div class="w-16 h-16 bg-rose-100 text-rose-600 rounded-full flex items-center justify-center mx-auto mb-4 text-2xl shadow-inner">
+                <i class="fa-solid fa-triangle-exclamation"></i>
+            </div>
+            <h3 class="text-xl font-bold text-gray-900 mb-2">¿Estás seguro?</h3>
+            <p class="text-sm text-gray-500 mb-8" x-text="confirmMessage"></p>
+            <div class="flex space-x-3">
+                <button @click="showConfirmModal = false; confirmAction = null" class="flex-1 bg-gray-100 hover:bg-gray-200 text-gray-700 font-bold py-3 rounded-xl transition">
+                    Cancelar
+                </button>
+                <button @click="executeConfirm()" class="flex-1 bg-rose-600 hover:bg-rose-700 text-white font-bold py-3 rounded-xl shadow-lg transition">
+                    Sí, proceder
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Toast Notification Elegante -->
+    <div class="fixed bottom-6 right-6 z-[80] flex flex-col items-end space-y-2 pointer-events-none">
+        <div x-show="toastMessage" 
+             x-transition:enter="transition ease-out duration-300 transform"
+             x-transition:enter-start="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95"
+             x-transition:enter-end="opacity-100 translate-y-0 sm:scale-100"
+             x-transition:leave="transition ease-in duration-200"
+             x-transition:leave-start="opacity-100"
+             x-transition:leave-end="opacity-0"
+             class="pointer-events-auto px-5 py-3.5 rounded-xl shadow-2xl flex items-center space-x-3 max-w-sm"
+             :class="toastType === 'error' ? 'bg-rose-600 text-white' : 'bg-gray-900 text-white'"
+             style="display: none;">
+            <div class="flex-shrink-0 text-xl" :class="toastType === 'error' ? 'text-rose-200' : 'text-brand-400'">
+                <i class="fa-solid" :class="toastType === 'error' ? 'fa-circle-xmark' : 'fa-circle-check'"></i>
+            </div>
+            <p class="text-sm font-semibold" x-text="toastMessage"></p>
+        </div>
+    </div>
+
+    <script>
+        function arroyoApp() {
+            return {
+                // Estado UI
+                currentView: 'home', 
+                currentStoreView: null,
+                selectedRubro: 'Todos',
+                mobileMenuOpen: false,
+                adminTab: 'stores',
+                
+                // Autenticación y Sesión
+                currentSession: null, // role: 'merchant' | 'admin'
+                showLoginModal: false,
+                loginType: 'merchant',
+                loginForm: { email: '', password: '' },
+
+                // UI Utils
+                showProductModal: false,
+                toastMessage: '',
+                toastType: 'success', // 'success' o 'error'
+                showConfirmModal: false,
+                confirmMessage: '',
+                confirmAction: null,
+
+                // Datos Maestros Config
+                platformSettings: {
+                    appName: 'Arroyo App 2026',
+                    city: 'Arroyo Seco',
+                    currency: '$',
+                    subscriptionFee: 15000
+                },
+                adminProfile: {
+                    name: 'Administrador Principal',
+                    email: 'admin@arroyoapp2026.com',
+                    password: 'admin123',
+                    phone: '5493410000000'
+                },
+
+                // Listas de datos
+                rubros: ['Indumentaria', 'Gastronomía', 'Ferretería', 'Tecnología', 'Servicios'],
+                newRubroName: '',
+                
+                ads: [
+                    { id: 1, title: 'Promo Banco Local', image: 'https://placehold.co/800x200/1e293b/ffffff?text=Espacio+Publicitario', link: '#', active: true }
+                ],
+                showAdModal: false,
+                adForm: { id: null, title: '', image: '', link: '', active: true },
+                
+                showAdminEditStoreModal: false,
+                adminStoreForm: { id: null, name: '', email: '', whatsapp: '', rubro: '', status: '' },
+
+                stores: [
+                    { id: 1, name: 'Boutique Las Margaritas', email: 'tienda1@demo.com', password: '123', rubro: 'Indumentaria', description: 'Ropa femenina de temporada y accesorios.', whatsapp: '5491122334455', logo: null, cover: null, status: 'active' },
+                    { id: 2, name: 'Ferretería El Tornillo', email: 'tienda2@demo.com', password: '123', rubro: 'Ferretería', description: 'Herramientas, pinturas y materiales de construcción.', whatsapp: '5491122334466', logo: null, cover: null, status: 'active' }
+                ],
+                
+                products: [
+                    { id: 1, storeId: 1, name: 'Vestido Floreado Primavera', price: 25000, category: 'Vestidos', description: 'Vestido ligero ideal para el verano.', image: '' },
+                    { id: 2, storeId: 1, name: 'Zapatos de Taco', price: 45000, category: 'Calzado', description: 'Zapatos negros elegantes.', image: '' },
+                    { id: 3, storeId: 2, name: 'Taladro Percutor 800W', price: 85000, category: 'Herramientas Eléctricas', description: 'Taladro profesional con mechas incluidas.', image: '' }
+                ],
+
+                // Formularios
+                registerForm: { name: '', rubro: '', description: '', whatsapp: '', email: '', password: '' },
+                productForm: { id: null, name: '', price: '', category: '', image: '', description: '' },
+
+                // --- MÉTODOS ---
+
+                activeAds() {
+                    return this.ads.filter(a => a.active);
+                },
+
+                formatPrice(value) {
+                    return this.platformSettings.currency + ' ' + Number(value).toLocaleString('es-AR');
+                },
+
+                filteredStores() {
+                    if (this.selectedRubro === 'Todos') return this.stores;
+                    return this.stores.filter(s => s.rubro === this.selectedRubro);
+                },
+
+                getStoreProducts(storeId) {
+                    return this.products.filter(p => p.storeId === storeId);
+                },
+
+                getMerchantProducts() {
+                    if (!this.currentSession || this.currentSession.role !== 'merchant') return [];
+                    return this.getStoreProducts(this.currentSession.id);
+                },
+
+                openStorefront(store) {
+                    this.currentStoreView = store;
+                    this.currentView = 'storefront';
+                    window.scrollTo(0,0);
+                },
+
+                // Auth
+                openLoginModal(type) {
+                    this.loginType = type;
+                    this.loginForm = { email: '', password: '' };
+                    this.showLoginModal = true;
+                },
+
+                handleLogin() {
+                    if (this.loginType === 'admin') {
+                        if (this.loginForm.email === this.adminProfile.email && this.loginForm.password === this.adminProfile.password) {
+                            this.currentSession = { role: 'admin', name: 'Admin', ...this.adminProfile };
+                            this.showLoginModal = false;
+                            this.currentView = 'admin_dashboard';
+                            this.showToast('Bienvenido al cPanel Maestro.');
+                        } else {
+                            this.showToast('Credenciales incorrectas.', 'error');
+                        }
+                    } else {
+                        const found = this.stores.find(s => s.email === this.loginForm.email && s.password === this.loginForm.password);
+                        if (found) {
+                            this.currentSession = { role: 'merchant', ...found };
+                            this.showLoginModal = false;
+                            this.currentView = 'merchant_dashboard';
+                            this.showToast('¡Hola ' + found.name + '! Has iniciado sesión.');
+                        } else {
+                            this.showToast('Email o clave de comercio incorrectos.', 'error');
+                        }
+                    }
+                },
+
+                logout() {
+                    this.currentSession = null;
+                    this.currentView = 'home';
+                    this.currentStoreView = null;
+                    this.showToast('Sesión cerrada correctamente.');
+                },
+
+                // Admin
+                saveAdminProfile() {
+                    this.showToast('Datos personales del admin actualizados.');
+                },
+                savePlatformSettings() {
+                    this.showToast('Configuración global actualizada.');
+                },
+                
+                // Editar y gestionar comercios
+                openAdminEditStore(store) {
+                    this.adminStoreForm = { ...store };
+                    this.showAdminEditStoreModal = true;
+                },
+                saveAdminEditStore() {
+                    const index = this.stores.findIndex(s => s.id === this.adminStoreForm.id);
+                    if (index !== -1) {
+                        this.stores[index] = { ...this.stores[index], ...this.adminStoreForm };
+                    }
+                    this.showAdminEditStoreModal = false;
+                    this.showToast('Datos del comercio actualizados.');
+                },
+                deleteStore(id) {
+                    this.requestConfirm('¿Seguro que deseas eliminar este comercio? Se borrarán todos sus productos.', () => {
+                        this.stores = this.stores.filter(s => s.id !== id);
+                        this.products = this.products.filter(p => p.storeId !== id);
+                        this.showToast('Comercio dado de baja.');
+                    });
+                },
+
+                // Gestionar Rubros
+                addRubro() {
+                    const trimmed = this.newRubroName.trim();
+                    if (trimmed && !this.rubros.includes(trimmed)) {
+                        this.rubros.push(trimmed);
+                        this.newRubroName = '';
+                        this.showToast('Rubro añadido.');
+                    } else {
+                        this.showToast('El rubro ya existe o está vacío.', 'error');
+                    }
+                },
+                removeRubro(rubroName) {
+                    this.requestConfirm(`¿Deseas eliminar el rubro "${rubroName}"?`, () => {
+                        this.rubros = this.rubros.filter(r => r !== rubroName);
+                        this.showToast('Rubro eliminado.');
+                    });
+                },
+
+                // Gestionar Publicidad
+                openAdModal(ad = null) {
+                    if (ad) {
+                        this.adForm = { ...ad };
+                    } else {
+                        this.adForm = { id: null, title: '', image: '', link: '', active: true };
+                    }
+                    this.showAdModal = true;
+                },
+                handleAdImageUpload(event) {
+                    const file = event.target.files[0];
+                    if (file) {
+                        this.adForm.image = URL.createObjectURL(file);
+                    }
+                },
+                saveAd() {
+                    if (!this.adForm.image) {
+                        this.showToast('Sube una imagen para el banner.', 'error');
+                        return;
+                    }
+                    if (this.adForm.id) {
+                        const index = this.ads.findIndex(a => a.id === this.adForm.id);
+                        if (index !== -1) this.ads[index] = { ...this.adForm };
+                        this.showToast('Publicidad actualizada.');
+                    } else {
+                        const newId = this.ads.length ? Math.max(...this.ads.map(a => a.id)) + 1 : 1;
+                        this.ads.push({ ...this.adForm, id: newId });
+                        this.showToast('Nueva publicidad creada.');
+                    }
+                    this.showAdModal = false;
+                },
+                deleteAd(id) {
+                    this.requestConfirm('¿Deseas borrar este banner publicitario?', () => {
+                        this.ads = this.ads.filter(a => a.id !== id);
+                        this.showToast('Publicidad eliminada.');
+                    });
+                },
+
+                // Merchant
+                registerMerchant() {
+                    const exists = this.stores.find(s => s.email === this.registerForm.email);
+                    if (exists) {
+                        this.showToast('Este email ya está registrado.', 'error');
+                        return;
+                    }
+
+                    // Simulación de validación de pago Mercado Pago exitosa
+                    this.showToast('Pago validado. Creando tu tienda...', 'success');
+                    
+                    setTimeout(() => {
+                        const newId = this.stores.length ? Math.max(...this.stores.map(s => s.id)) + 1 : 1;
+                        const newStore = { ...this.registerForm, id: newId, status: 'active', logo: null, cover: null };
+                        
+                        this.stores.push(newStore);
+                        this.currentSession = { role: 'merchant', ...newStore };
+                        this.currentView = 'merchant_dashboard';
+                        this.registerForm = { name: '', rubro: '', description: '', whatsapp: '', email: '', password: '' };
+                        
+                        this.showToast('¡Suscripción activa! Bienvenido a tu panel.');
+                    }, 1500);
+                },
+
+                // Products
+                openProductModal() {
+                    this.productForm = { id: null, name: '', price: '', category: '', image: '', description: '' };
+                    this.showProductModal = true;
+                },
+
+                handleImageUpload(event) {
+                    const file = event.target.files[0];
+                    if (file) {
+                        // Crear una URL local para la previsualización de la imagen
+                        this.productForm.image = URL.createObjectURL(file);
+                    }
+                },
+
+                editProduct(prod) {
+                    this.productForm = { ...prod };
+                    this.showProductModal = true;
+                },
+
+                saveProduct() {
+                    if (this.productForm.id) {
+                        // Actualizar
+                        const index = this.products.findIndex(p => p.id === this.productForm.id);
+                        if (index !== -1) this.products[index] = { ...this.productForm };
+                        this.showToast('Producto actualizado correctamente.');
+                    } else {
+                        // Crear
+                        const newId = this.products.length ? Math.max(...this.products.map(p => p.id)) + 1 : 1;
+                        this.products.push({
+                            ...this.productForm,
+                            id: newId,
+                            storeId: this.currentSession.id
+                        });
+                        this.showToast('Nuevo producto subido con éxito.');
+                    }
+                    this.showProductModal = false;
+                },
+
+                deleteProduct(id) {
+                    this.requestConfirm('¿Deseas eliminar este producto de tu catálogo permanentemente?', () => {
+                        this.products = this.products.filter(p => p.id !== id);
+                        this.showToast('Producto eliminado.');
+                    });
+                },
+
+                // UI Utils
+                requestConfirm(message, action) {
+                    this.confirmMessage = message;
+                    this.confirmAction = action;
+                    this.showConfirmModal = true;
+                },
+
+                executeConfirm() {
+                    if (this.confirmAction) {
+                        this.confirmAction();
+                    }
+                    this.showConfirmModal = false;
+                    this.confirmAction = null;
+                },
+
+                showToast(msg, type = 'success') {
+                    this.toastMessage = msg;
+                    this.toastType = type;
+                    setTimeout(() => {
+                        this.toastMessage = '';
+                    }, 3500);
+                }
+            }
+        }
+    </script>
+</body>
+</html>

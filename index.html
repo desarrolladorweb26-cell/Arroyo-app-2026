@@ -162,9 +162,11 @@
                 <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
                     <template x-for="store in filteredStores()" :key="store.id">
                         <div class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden hover:shadow-xl transition duration-300 group cursor-pointer" @click="openStorefront(store)">
-                            <div class="h-32 bg-gray-100 relative">
-                                <img :src="store.cover || 'https://placehold.co/600x400/e2e8f0/64748b?text=Portada'" onerror="this.src='https://placehold.co/600x400/e2e8f0/64748b?text=Portada'" class="w-full h-full object-cover group-hover:scale-105 transition duration-500">
-                                <div class="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent"></div>
+                            <div class="h-32 bg-gradient-to-br from-brand-600 to-emerald-800 relative overflow-hidden">
+                                <template x-if="store.cover">
+                                    <img :src="store.cover" class="w-full h-full object-cover group-hover:scale-105 transition duration-500">
+                                </template>
+                                <div class="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent"></div>
                                 <div class="absolute bottom-3 left-4 flex items-center space-x-3">
                                     <div class="w-12 h-12 bg-white rounded-full p-1 shadow-md">
                                         <img :src="store.logo || 'https://placehold.co/100x100/16a34a/ffffff?text='+store.name.charAt(0)" class="w-full h-full rounded-full object-cover">
@@ -330,6 +332,23 @@
                             <input type="password" x-model="registerForm.password" required class="w-full px-4 py-2.5 rounded-xl border border-gray-300 focus:ring-2 focus:ring-brand-500 outline-none transition bg-gray-50" placeholder="••••••••">
                         </div>
 
+                        <!-- Foto de Portada Opcional en Registro -->
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Foto de Portada del Local <span class="text-xs text-gray-400 font-normal">(Opcional, podés cambiarla luego)</span></label>
+                            <div class="border-2 border-dashed border-gray-300 rounded-xl p-3 text-center relative hover:bg-gray-50 transition group cursor-pointer">
+                                <input type="file" accept="image/*" @change="handleRegisterCoverUpload" class="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10">
+                                <template x-if="registerForm.cover">
+                                    <img :src="registerForm.cover" class="w-full h-28 object-cover rounded-lg">
+                                </template>
+                                <template x-if="!registerForm.cover">
+                                    <div class="py-3 text-gray-400 group-hover:text-brand-600 transition flex items-center justify-center space-x-2">
+                                        <i class="fa-solid fa-image text-xl"></i>
+                                        <span class="text-sm font-medium">Toca para subir foto de portada</span>
+                                    </div>
+                                </template>
+                            </div>
+                        </div>
+
                         <div class="pt-4 mt-6 border-t border-gray-100">
                             <button type="submit" class="w-full bg-brand-600 hover:bg-brand-700 text-white font-bold py-3.5 rounded-xl shadow-lg hover:shadow-xl transition flex justify-center items-center space-x-2">
                                 <span>Empezar 1 Mes Gratis y Crear Tienda</span>
@@ -347,17 +366,25 @@
             <template x-if="currentSession && currentSession.role === 'merchant'">
                 <div>
                     <!-- Encabezado Dashboard -->
-                    <div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-8 bg-white p-6 rounded-2xl shadow-sm border border-gray-100">
-                        <div class="flex items-center space-x-4 mb-4 md:mb-0">
-                            <div class="w-16 h-16 bg-brand-100 text-brand-600 rounded-2xl flex items-center justify-center text-2xl font-bold border-2 border-brand-200">
-                                <i class="fa-solid fa-shop"></i>
+                    <div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 bg-white p-6 rounded-2xl shadow-sm border border-gray-100 gap-4">
+                        <div class="flex items-center space-x-4">
+                            <div class="w-16 h-16 bg-brand-100 text-brand-600 rounded-2xl flex items-center justify-center text-2xl font-bold border-2 border-brand-200 overflow-hidden flex-shrink-0">
+                                <template x-if="currentSession.logo">
+                                    <img :src="currentSession.logo" class="w-full h-full object-cover">
+                                </template>
+                                <template x-if="!currentSession.logo">
+                                    <i class="fa-solid fa-shop"></i>
+                                </template>
                             </div>
                             <div>
                                 <h2 class="text-2xl font-bold text-gray-900" x-text="currentSession.name"></h2>
                                 <p class="text-sm text-gray-500">Panel de Control del Comercio</p>
                             </div>
                         </div>
-                        <div class="flex space-x-3 w-full md:w-auto">
+                        <div class="flex flex-wrap gap-2.5 w-full md:w-auto">
+                            <button @click="openMerchantProfileModal()" class="flex-1 md:flex-none bg-amber-50 hover:bg-amber-100 text-amber-700 border border-amber-200 font-semibold py-2 px-4 rounded-xl transition flex items-center justify-center space-x-2">
+                                <i class="fa-solid fa-image"></i> <span>Portada y Perfil</span>
+                            </button>
                             <button @click="openStorefront(currentSession)" class="flex-1 md:flex-none bg-gray-100 hover:bg-gray-200 text-gray-700 font-semibold py-2 px-4 rounded-xl transition flex items-center justify-center space-x-2">
                                 <i class="fa-regular fa-eye"></i> <span>Ver mi tienda</span>
                             </button>
@@ -365,6 +392,19 @@
                                 <i class="fa-solid fa-plus"></i> <span>Nuevo Producto</span>
                             </button>
                         </div>
+                    </div>
+
+                    <!-- Aviso rápido si aún no subió portada -->
+                    <div x-show="!currentSession.cover" class="mb-6 bg-brand-50 border border-brand-200 rounded-2xl p-4 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
+                        <div class="flex items-center space-x-3 text-brand-900">
+                            <div class="w-10 h-10 bg-brand-100 text-brand-600 rounded-xl flex items-center justify-center flex-shrink-0">
+                                <i class="fa-solid fa-camera"></i>
+                            </div>
+                            <p class="text-sm font-medium">¡Personalizá tu tarjeta en el inicio! Subí una <strong>foto de portada</strong> y el logo de tu comercio.</p>
+                        </div>
+                        <button @click="openMerchantProfileModal()" class="bg-brand-600 hover:bg-brand-700 text-white text-xs font-bold px-4 py-2 rounded-xl transition whitespace-nowrap">
+                            Subir Portada Ahora
+                        </button>
                     </div>
 
                     <!-- Tabla de Productos -->
@@ -713,13 +753,105 @@
         </div>
     </div>
 
+    <!-- MODAL COMERCIANTE: EDITAR PORTADA, LOGO Y PERFIL -->
+    <div x-show="showMerchantProfileModal" class="fixed inset-0 bg-black/60 backdrop-blur-sm z-[60] flex items-center justify-center p-4" x-transition style="display: none;">
+        <div @click.away="showMerchantProfileModal = false" class="bg-white rounded-3xl max-w-md w-full p-8 shadow-2xl relative max-h-[90vh] overflow-y-auto no-scrollbar">
+            <button @click="showMerchantProfileModal = false" class="absolute top-4 right-4 text-gray-400 hover:text-gray-700"><i class="fa-solid fa-xmark text-xl"></i></button>
+            <h3 class="text-xl font-bold text-gray-900 mb-6">Portada y Perfil de mi Tienda</h3>
+            
+            <form @submit.prevent="saveMerchantProfile" class="space-y-4">
+                <!-- Foto de Portada -->
+                <div>
+                    <label class="block text-xs font-semibold text-gray-600 uppercase mb-1">Foto de Portada</label>
+                    <div class="border-2 border-dashed border-gray-300 rounded-2xl p-3 text-center relative hover:bg-gray-50 transition group cursor-pointer">
+                        <input type="file" accept="image/*" @change="handleMerchantCoverUpload" class="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10">
+                        <template x-if="merchantProfileForm.cover">
+                            <img :src="merchantProfileForm.cover" class="w-full h-32 object-cover rounded-xl">
+                        </template>
+                        <template x-if="!merchantProfileForm.cover">
+                            <div class="py-5 text-gray-400 group-hover:text-brand-600 transition">
+                                <i class="fa-solid fa-image text-3xl mb-1"></i>
+                                <p class="text-xs font-medium">Toca para subir foto de portada</p>
+                            </div>
+                        </template>
+                    </div>
+                </div>
+
+                <!-- Logo del Local -->
+                <div>
+                    <label class="block text-xs font-semibold text-gray-600 uppercase mb-1">Logo del Comercio (Opcional)</label>
+                    <div class="flex items-center space-x-4">
+                        <div class="w-16 h-16 rounded-full bg-gray-100 border border-gray-200 overflow-hidden flex items-center justify-center flex-shrink-0">
+                            <template x-if="merchantProfileForm.logo">
+                                <img :src="merchantProfileForm.logo" class="w-full h-full object-cover">
+                            </template>
+                            <template x-if="!merchantProfileForm.logo">
+                                <i class="fa-solid fa-store text-gray-400 text-xl"></i>
+                            </template>
+                        </div>
+                        <label class="flex-1 bg-gray-100 hover:bg-gray-200 text-gray-700 text-xs font-bold py-2.5 px-4 rounded-xl text-center cursor-pointer transition">
+                            <i class="fa-solid fa-upload mr-1.5"></i> Cambiar Logo
+                            <input type="file" accept="image/*" @change="handleMerchantLogoUpload" class="hidden">
+                        </label>
+                    </div>
+                </div>
+
+                <div>
+                    <label class="block text-xs font-semibold text-gray-600 uppercase mb-1">Nombre del Local</label>
+                    <input type="text" x-model="merchantProfileForm.name" required class="w-full px-4 py-2.5 rounded-xl border border-gray-300 focus:ring-2 focus:ring-brand-500 outline-none text-sm bg-gray-50">
+                </div>
+
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-xs font-semibold text-gray-600 uppercase mb-1">Rubro</label>
+                        <select x-model="merchantProfileForm.rubro" required class="w-full px-4 py-2.5 rounded-xl border border-gray-300 focus:ring-2 focus:ring-brand-500 outline-none text-sm bg-gray-50">
+                            <template x-for="rubro in rubros" :key="rubro">
+                                <option :value="rubro" x-text="rubro"></option>
+                            </template>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold text-gray-600 uppercase mb-1">WhatsApp</label>
+                        <input type="number" x-model="merchantProfileForm.whatsapp" required class="w-full px-4 py-2.5 rounded-xl border border-gray-300 focus:ring-2 focus:ring-brand-500 outline-none text-sm bg-gray-50">
+                    </div>
+                </div>
+
+                <div>
+                    <label class="block text-xs font-semibold text-gray-600 uppercase mb-1">Descripción</label>
+                    <textarea x-model="merchantProfileForm.description" rows="2" class="w-full px-4 py-2.5 rounded-xl border border-gray-300 focus:ring-2 focus:ring-brand-500 outline-none text-sm bg-gray-50 resize-none"></textarea>
+                </div>
+
+                <div class="pt-2">
+                    <button type="submit" class="w-full bg-brand-600 hover:bg-brand-700 text-white font-bold py-3.5 rounded-xl shadow-lg transition">
+                        Guardar Cambios
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
     <!-- MODAL ADMIN: EDITAR COMERCIO -->
     <div x-show="showAdminEditStoreModal" class="fixed inset-0 bg-black/60 backdrop-blur-sm z-[60] flex items-center justify-center p-4" x-transition style="display: none;">
-        <div @click.away="showAdminEditStoreModal = false" class="bg-white rounded-3xl max-w-md w-full p-8 shadow-2xl relative">
+        <div @click.away="showAdminEditStoreModal = false" class="bg-white rounded-3xl max-w-md w-full p-8 shadow-2xl relative max-h-[90vh] overflow-y-auto no-scrollbar">
             <button @click="showAdminEditStoreModal = false" class="absolute top-4 right-4 text-gray-400 hover:text-gray-700"><i class="fa-solid fa-xmark text-xl"></i></button>
             <h3 class="text-xl font-bold text-gray-900 mb-6">Editar Datos del Comercio</h3>
             
             <form @submit.prevent="saveAdminEditStore" class="space-y-4">
+                <div>
+                    <label class="block text-xs font-semibold text-gray-600 uppercase mb-1">Foto de Portada</label>
+                    <div class="border-2 border-dashed border-gray-300 rounded-2xl p-3 text-center relative hover:bg-gray-50 transition group cursor-pointer">
+                        <input type="file" accept="image/*" @change="handleAdminStoreCoverUpload" class="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10">
+                        <template x-if="adminStoreForm.cover">
+                            <img :src="adminStoreForm.cover" class="w-full h-28 object-cover rounded-xl">
+                        </template>
+                        <template x-if="!adminStoreForm.cover">
+                            <div class="py-4 text-gray-400 group-hover:text-brand-600 transition">
+                                <i class="fa-solid fa-image text-2xl mb-1"></i>
+                                <p class="text-xs font-medium">Subir o cambiar portada</p>
+                            </div>
+                        </template>
+                    </div>
+                </div>
                 <div>
                     <label class="block text-xs font-semibold text-gray-600 uppercase mb-1">Nombre</label>
                     <input type="text" x-model="adminStoreForm.name" required class="w-full px-4 py-2.5 rounded-xl border border-gray-300 focus:ring-2 focus:ring-brand-500 outline-none text-sm">
@@ -1139,6 +1271,7 @@
 
                 // Modales y Notificaciones
                 showProductModal: false,
+                showMerchantProfileModal: false,
                 toastMessage: '',
                 toastType: 'success',
                 showConfirmModal: false,
@@ -1170,7 +1303,8 @@
                 adForm: { id: null, title: '', image: '', link: '', active: true },
                 
                 showAdminEditStoreModal: false,
-                adminStoreForm: { id: null, name: '', email: '', whatsapp: '', rubro: '', status: '' },
+                adminStoreForm: { id: null, name: '', email: '', whatsapp: '', rubro: '', status: '', cover: '' },
+                merchantProfileForm: { id: null, name: '', rubro: '', description: '', whatsapp: '', cover: '', logo: '' },
 
                 stores: [
                     { id: 1, name: 'Boutique Las Margaritas', email: 'tienda1@demo.com', password: '123', rubro: 'Indumentaria', description: 'Ropa femenina de temporada y accesorios.', whatsapp: '5493402553700', logo: null, cover: null, status: 'active' },
@@ -1184,7 +1318,7 @@
                 ],
 
                 // Formularios
-                registerForm: { name: '', rubro: '', description: '', whatsapp: '', email: '', password: '' },
+                registerForm: { name: '', rubro: '', description: '', whatsapp: '', email: '', password: '', cover: '' },
                 productForm: { id: null, name: '', price: '', category: '', image: '', description: '' },
 
                 // Inicialización
@@ -1449,6 +1583,17 @@
                     this.showAdminEditStoreModal = true;
                 },
 
+                async handleAdminStoreCoverUpload(event) {
+                    const file = event.target.files[0];
+                    if (file) {
+                        try {
+                            this.adminStoreForm.cover = await this.compressImage(file, 900, 0.75);
+                        } catch (err) {
+                            this.showToast('Error al procesar la imagen de portada.', 'error');
+                        }
+                    }
+                },
+
                 async saveAdminEditStore() {
                     try {
                         if (this.dbReady) {
@@ -1582,6 +1727,17 @@
                 },
 
                 // Registro de Comerciante (1 Mes Gratis)
+                async handleRegisterCoverUpload(event) {
+                    const file = event.target.files[0];
+                    if (file) {
+                        try {
+                            this.registerForm.cover = await this.compressImage(file, 900, 0.75);
+                        } catch (err) {
+                            this.showToast('Error al procesar la imagen de portada.', 'error');
+                        }
+                    }
+                },
+
                 registerMerchant() {
                     const exists = this.stores.find(s => s.email === this.registerForm.email);
                     if (exists) {
@@ -1593,7 +1749,7 @@
                     
                     setTimeout(async () => {
                         try {
-                            const storePayload = { ...this.registerForm, status: 'active', logo: null, cover: null, createdAt: new Date().toISOString() };
+                            const storePayload = { ...this.registerForm, status: 'active', logo: null, cover: this.registerForm.cover || null, createdAt: new Date().toISOString() };
                             let newId = 'local-' + Date.now();
                             if (this.dbReady) {
                                 newId = await window.dbService.createStore(storePayload);
@@ -1603,7 +1759,7 @@
                             
                             this.currentSession = { role: 'merchant', id: newId, ...storePayload };
                             this.currentView = 'merchant_dashboard';
-                            this.registerForm = { name: '', rubro: '', description: '', whatsapp: '', email: '', password: '' };
+                            this.registerForm = { name: '', rubro: '', description: '', whatsapp: '', email: '', password: '', cover: '' };
                             
                             this.showToast('¡1 Mes Gratis activado! Bienvenido a tu panel.');
                         } catch (err) {
@@ -1611,6 +1767,68 @@
                             this.showToast('Error al registrar el comercio en la nube.', 'error');
                         }
                     }, 1200);
+                },
+
+                // Perfil, Portada y Logo del Comerciante
+                openMerchantProfileModal() {
+                    if (!this.currentSession || this.currentSession.role !== 'merchant') return;
+                    this.merchantProfileForm = {
+                        id: this.currentSession.id,
+                        name: this.currentSession.name || '',
+                        rubro: this.currentSession.rubro || '',
+                        description: this.currentSession.description || '',
+                        whatsapp: this.currentSession.whatsapp || '',
+                        cover: this.currentSession.cover || '',
+                        logo: this.currentSession.logo || ''
+                    };
+                    this.showMerchantProfileModal = true;
+                },
+
+                async handleMerchantCoverUpload(event) {
+                    const file = event.target.files[0];
+                    if (file) {
+                        try {
+                            this.merchantProfileForm.cover = await this.compressImage(file, 900, 0.75);
+                        } catch (err) {
+                            this.showToast('Error al procesar la imagen de portada.', 'error');
+                        }
+                    }
+                },
+
+                async handleMerchantLogoUpload(event) {
+                    const file = event.target.files[0];
+                    if (file) {
+                        try {
+                            this.merchantProfileForm.logo = await this.compressImage(file, 300, 0.75);
+                        } catch (err) {
+                            this.showToast('Error al procesar el logo.', 'error');
+                        }
+                    }
+                },
+
+                async saveMerchantProfile() {
+                    try {
+                        const updatedData = {
+                            name: this.merchantProfileForm.name,
+                            rubro: this.merchantProfileForm.rubro,
+                            description: this.merchantProfileForm.description,
+                            whatsapp: this.merchantProfileForm.whatsapp,
+                            cover: this.merchantProfileForm.cover || null,
+                            logo: this.merchantProfileForm.logo || null
+                        };
+                        if (this.dbReady) {
+                            await window.dbService.updateStore(this.merchantProfileForm.id, updatedData);
+                        } else {
+                            const index = this.stores.findIndex(s => s.id === this.merchantProfileForm.id);
+                            if (index !== -1) this.stores[index] = { ...this.stores[index], ...updatedData };
+                            this.currentSession = { ...this.currentSession, ...updatedData };
+                        }
+                        this.showMerchantProfileModal = false;
+                        this.showToast('¡Portada y perfil actualizados!');
+                    } catch (err) {
+                        console.error(err);
+                        this.showToast('Error al guardar la portada.', 'error');
+                    }
                 },
 
                 // Gestión de Productos del Comerciante

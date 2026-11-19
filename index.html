@@ -8,7 +8,7 @@
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="apple-mobile-web-app-title" content="Arroyo App">
-    <title>Arroyo-App </title>
+    <title>Arroyo App - Shopping Digital Local</title>
     
     <!-- Fuentes e íconos -->
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
@@ -164,7 +164,7 @@
                         <div class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden hover:shadow-xl transition duration-300 group cursor-pointer" @click="openStorefront(store)">
                             <div class="h-32 bg-gradient-to-br from-brand-600 to-emerald-800 relative overflow-hidden">
                                 <template x-if="store.cover">
-                                    <img :src="store.cover" class="w-full h-full object-cover group-hover:scale-105 transition duration-500">
+                                    <img :src="store.cover" :style="'object-position: ' + (store.coverPosX ?? 50) + '% ' + (store.coverPosY ?? 50) + '%'" class="w-full h-full object-cover group-hover:scale-105 transition duration-500">
                                 </template>
                                 <div class="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent"></div>
                                 <div class="absolute bottom-3 left-4 flex items-center space-x-3">
@@ -198,15 +198,17 @@
                 <div>
                     <!-- Encabezado de Tienda -->
                     <div class="bg-gray-900 text-white pt-16 pb-8 px-4 relative overflow-hidden">
-                        <div class="absolute inset-0 opacity-30">
-                            <img :src="currentStoreView.cover || 'https://placehold.co/1200x400/1f2937/1f2937'" class="w-full h-full object-cover blur-sm">
+                        <div class="absolute inset-0 opacity-35">
+                            <template x-if="currentStoreView.cover">
+                                <img :src="currentStoreView.cover" :style="'object-position: ' + (currentStoreView.coverPosX ?? 50) + '% ' + (currentStoreView.coverPosY ?? 50) + '%'" class="w-full h-full object-cover">
+                            </template>
                         </div>
                         <div class="max-w-5xl mx-auto relative z-10 flex flex-col md:flex-row items-center md:items-start space-y-4 md:space-y-0 md:space-x-6 text-center md:text-left">
-                            <img :src="currentStoreView.logo || 'https://placehold.co/150x150/16a34a/ffffff?text='+currentStoreView.name.charAt(0)" class="w-24 h-24 rounded-2xl shadow-xl border-4 border-white/20">
+                            <img :src="currentStoreView.logo || 'https://placehold.co/150x150/16a34a/ffffff?text='+currentStoreView.name.charAt(0)" class="w-24 h-24 rounded-2xl shadow-xl border-4 border-white/20 object-cover">
                             <div class="flex-1">
-                                <h1 class="text-3xl font-extrabold mb-1" x-text="currentStoreView.name"></h1>
-                                <p class="text-gray-300 text-sm mb-3" x-text="currentStoreView.rubro"></p>
-                                <p class="text-gray-200 max-w-xl" x-text="currentStoreView.description"></p>
+                                <h1 class="text-3xl font-extrabold mb-1 drop-shadow" x-text="currentStoreView.name"></h1>
+                                <p class="text-gray-200 text-sm mb-3" x-text="currentStoreView.rubro"></p>
+                                <p class="text-gray-100 max-w-xl" x-text="currentStoreView.description"></p>
                             </div>
                             <div class="flex-shrink-0">
                                 <a :href="'https://wa.me/'+currentStoreView.whatsapp" target="_blank" class="inline-flex items-center space-x-2 bg-green-500 hover:bg-green-600 text-white font-bold py-2.5 px-6 rounded-full shadow-lg transition">
@@ -332,21 +334,40 @@
                             <input type="password" x-model="registerForm.password" required class="w-full px-4 py-2.5 rounded-xl border border-gray-300 focus:ring-2 focus:ring-brand-500 outline-none transition bg-gray-50" placeholder="••••••••">
                         </div>
 
-                        <!-- Foto de Portada Opcional en Registro -->
+                        <!-- Foto de Portada con Arrastre (Manito) -->
                         <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-1">Foto de Portada del Local <span class="text-xs text-gray-400 font-normal">(Opcional, podés cambiarla luego)</span></label>
-                            <div class="border-2 border-dashed border-gray-300 rounded-xl p-3 text-center relative hover:bg-gray-50 transition group cursor-pointer">
-                                <input type="file" accept="image/*" @change="handleRegisterCoverUpload" class="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10">
-                                <template x-if="registerForm.cover">
-                                    <img :src="registerForm.cover" class="w-full h-28 object-cover rounded-lg">
-                                </template>
-                                <template x-if="!registerForm.cover">
-                                    <div class="py-3 text-gray-400 group-hover:text-brand-600 transition flex items-center justify-center space-x-2">
-                                        <i class="fa-solid fa-image text-xl"></i>
-                                        <span class="text-sm font-medium">Toca para subir foto de portada</span>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Foto de Portada del Local <span class="text-xs text-gray-400 font-normal">(Opcional)</span></label>
+                            <template x-if="!registerForm.cover">
+                                <label class="border-2 border-dashed border-gray-300 rounded-xl p-4 text-center hover:bg-gray-50 transition group cursor-pointer flex items-center justify-center space-x-2 text-gray-400 hover:text-brand-600">
+                                    <i class="fa-solid fa-image text-xl"></i>
+                                    <span class="text-sm font-medium">Toca para subir foto de portada</span>
+                                    <input type="file" accept="image/*" @change="handleRegisterCoverUpload" class="hidden">
+                                </label>
+                            </template>
+                            <template x-if="registerForm.cover">
+                                <div class="space-y-2">
+                                    <div class="relative h-32 rounded-xl overflow-hidden border border-gray-200 cursor-grab active:cursor-grabbing select-none touch-none"
+                                         @pointerdown="startCoverDrag($event, 'registerForm')"
+                                         @pointermove="moveCoverDrag($event)"
+                                         @pointerup="endCoverDrag($event)"
+                                         @pointercancel="endCoverDrag($event)">
+                                        <img :src="registerForm.cover" draggable="false" :style="'object-position: ' + registerForm.coverPosX + '% ' + registerForm.coverPosY + '%'" class="w-full h-full object-cover pointer-events-none select-none">
+                                        <span class="absolute top-2 left-2 bg-black/65 text-white text-[11px] font-semibold px-2.5 py-1 rounded-full pointer-events-none flex items-center space-x-1.5">
+                                            <i class="fa-regular fa-hand"></i>
+                                            <span>Arrastrá para acomodar</span>
+                                        </span>
                                     </div>
-                                </template>
-                            </div>
+                                    <div class="flex justify-between items-center text-xs">
+                                        <label class="text-brand-600 hover:text-brand-700 font-semibold cursor-pointer">
+                                            <i class="fa-solid fa-arrows-rotate mr-1"></i> Cambiar foto
+                                            <input type="file" accept="image/*" @change="handleRegisterCoverUpload" class="hidden">
+                                        </label>
+                                        <button type="button" @click="registerForm.cover = ''; registerForm.coverPosX = 50; registerForm.coverPosY = 50" class="text-rose-500 hover:text-rose-700 font-semibold">
+                                            <i class="fa-solid fa-trash mr-1"></i> Quitar
+                                        </button>
+                                    </div>
+                                </div>
+                            </template>
                         </div>
 
                         <div class="pt-4 mt-6 border-t border-gray-100">
@@ -760,21 +781,40 @@
             <h3 class="text-xl font-bold text-gray-900 mb-6">Portada y Perfil de mi Tienda</h3>
             
             <form @submit.prevent="saveMerchantProfile" class="space-y-4">
-                <!-- Foto de Portada -->
+                <!-- Foto de Portada con Arrastre (Manito) -->
                 <div>
                     <label class="block text-xs font-semibold text-gray-600 uppercase mb-1">Foto de Portada</label>
-                    <div class="border-2 border-dashed border-gray-300 rounded-2xl p-3 text-center relative hover:bg-gray-50 transition group cursor-pointer">
-                        <input type="file" accept="image/*" @change="handleMerchantCoverUpload" class="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10">
-                        <template x-if="merchantProfileForm.cover">
-                            <img :src="merchantProfileForm.cover" class="w-full h-32 object-cover rounded-xl">
-                        </template>
-                        <template x-if="!merchantProfileForm.cover">
-                            <div class="py-5 text-gray-400 group-hover:text-brand-600 transition">
-                                <i class="fa-solid fa-image text-3xl mb-1"></i>
-                                <p class="text-xs font-medium">Toca para subir foto de portada</p>
+                    <template x-if="!merchantProfileForm.cover">
+                        <label class="border-2 border-dashed border-gray-300 rounded-2xl p-5 text-center hover:bg-gray-50 transition group cursor-pointer block text-gray-400 hover:text-brand-600">
+                            <i class="fa-solid fa-image text-3xl mb-1"></i>
+                            <p class="text-xs font-medium">Toca para subir foto de portada</p>
+                            <input type="file" accept="image/*" @change="handleMerchantCoverUpload" class="hidden">
+                        </label>
+                    </template>
+                    <template x-if="merchantProfileForm.cover">
+                        <div class="space-y-2">
+                            <div class="relative h-36 rounded-2xl overflow-hidden border border-gray-200 cursor-grab active:cursor-grabbing select-none touch-none"
+                                 @pointerdown="startCoverDrag($event, 'merchantProfileForm')"
+                                 @pointermove="moveCoverDrag($event)"
+                                 @pointerup="endCoverDrag($event)"
+                                 @pointercancel="endCoverDrag($event)">
+                                <img :src="merchantProfileForm.cover" draggable="false" :style="'object-position: ' + merchantProfileForm.coverPosX + '% ' + merchantProfileForm.coverPosY + '%'" class="w-full h-full object-cover pointer-events-none select-none">
+                                <span class="absolute top-2 left-2 bg-black/65 text-white text-[11px] font-semibold px-2.5 py-1 rounded-full pointer-events-none flex items-center space-x-1.5">
+                                    <i class="fa-regular fa-hand"></i>
+                                    <span>Arrastrá para acomodar</span>
+                                </span>
                             </div>
-                        </template>
-                    </div>
+                            <div class="flex justify-between items-center text-xs px-1">
+                                <label class="text-brand-600 hover:text-brand-700 font-semibold cursor-pointer">
+                                    <i class="fa-solid fa-arrows-rotate mr-1"></i> Cambiar foto
+                                    <input type="file" accept="image/*" @change="handleMerchantCoverUpload" class="hidden">
+                                </label>
+                                <button type="button" @click="merchantProfileForm.cover = ''; merchantProfileForm.coverPosX = 50; merchantProfileForm.coverPosY = 50" class="text-rose-500 hover:text-rose-700 font-semibold">
+                                    <i class="fa-solid fa-trash mr-1"></i> Quitar
+                                </button>
+                            </div>
+                        </div>
+                    </template>
                 </div>
 
                 <!-- Logo del Local -->
@@ -839,18 +879,37 @@
             <form @submit.prevent="saveAdminEditStore" class="space-y-4">
                 <div>
                     <label class="block text-xs font-semibold text-gray-600 uppercase mb-1">Foto de Portada</label>
-                    <div class="border-2 border-dashed border-gray-300 rounded-2xl p-3 text-center relative hover:bg-gray-50 transition group cursor-pointer">
-                        <input type="file" accept="image/*" @change="handleAdminStoreCoverUpload" class="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10">
-                        <template x-if="adminStoreForm.cover">
-                            <img :src="adminStoreForm.cover" class="w-full h-28 object-cover rounded-xl">
-                        </template>
-                        <template x-if="!adminStoreForm.cover">
-                            <div class="py-4 text-gray-400 group-hover:text-brand-600 transition">
-                                <i class="fa-solid fa-image text-2xl mb-1"></i>
-                                <p class="text-xs font-medium">Subir o cambiar portada</p>
+                    <template x-if="!adminStoreForm.cover">
+                        <label class="border-2 border-dashed border-gray-300 rounded-2xl p-4 text-center hover:bg-gray-50 transition group cursor-pointer block text-gray-400 hover:text-brand-600">
+                            <i class="fa-solid fa-image text-2xl mb-1"></i>
+                            <p class="text-xs font-medium">Subir o cambiar portada</p>
+                            <input type="file" accept="image/*" @change="handleAdminStoreCoverUpload" class="hidden">
+                        </label>
+                    </template>
+                    <template x-if="adminStoreForm.cover">
+                        <div class="space-y-2">
+                            <div class="relative h-32 rounded-2xl overflow-hidden border border-gray-200 cursor-grab active:cursor-grabbing select-none touch-none"
+                                 @pointerdown="startCoverDrag($event, 'adminStoreForm')"
+                                 @pointermove="moveCoverDrag($event)"
+                                 @pointerup="endCoverDrag($event)"
+                                 @pointercancel="endCoverDrag($event)">
+                                <img :src="adminStoreForm.cover" draggable="false" :style="'object-position: ' + adminStoreForm.coverPosX + '% ' + adminStoreForm.coverPosY + '%'" class="w-full h-full object-cover pointer-events-none select-none">
+                                <span class="absolute top-2 left-2 bg-black/65 text-white text-[11px] font-semibold px-2.5 py-1 rounded-full pointer-events-none flex items-center space-x-1.5">
+                                    <i class="fa-regular fa-hand"></i>
+                                    <span>Arrastrá para acomodar</span>
+                                </span>
                             </div>
-                        </template>
-                    </div>
+                            <div class="flex justify-between items-center text-xs px-1">
+                                <label class="text-brand-600 hover:text-brand-700 font-semibold cursor-pointer">
+                                    <i class="fa-solid fa-arrows-rotate mr-1"></i> Cambiar foto
+                                    <input type="file" accept="image/*" @change="handleAdminStoreCoverUpload" class="hidden">
+                                </label>
+                                <button type="button" @click="adminStoreForm.cover = ''; adminStoreForm.coverPosX = 50; adminStoreForm.coverPosY = 50" class="text-rose-500 hover:text-rose-700 font-semibold">
+                                    <i class="fa-solid fa-trash mr-1"></i> Quitar
+                                </button>
+                            </div>
+                        </div>
+                    </template>
                 </div>
                 <div>
                     <label class="block text-xs font-semibold text-gray-600 uppercase mb-1">Nombre</label>
@@ -1117,6 +1176,8 @@
                         whatsapp: '5493402553700',
                         logo: null,
                         cover: null,
+                        coverPosX: 50,
+                        coverPosY: 50,
                         status: 'active'
                     });
 
@@ -1129,6 +1190,8 @@
                         whatsapp: '5493402553700',
                         logo: null,
                         cover: null,
+                        coverPosX: 50,
+                        coverPosY: 50,
                         status: 'active'
                     });
 
@@ -1263,6 +1326,9 @@
                 isIOS: false,
                 showInstallModal: false,
 
+                // Estado de arrastre para acomodar portada (manito)
+                coverDrag: { active: false, formKey: null, startX: 0, startY: 0, initX: 50, initY: 50, rectW: 1, rectH: 1 },
+
                 // Autenticación y Sesión
                 currentSession: null,
                 showLoginModal: false,
@@ -1303,12 +1369,12 @@
                 adForm: { id: null, title: '', image: '', link: '', active: true },
                 
                 showAdminEditStoreModal: false,
-                adminStoreForm: { id: null, name: '', email: '', whatsapp: '', rubro: '', status: '', cover: '' },
-                merchantProfileForm: { id: null, name: '', rubro: '', description: '', whatsapp: '', cover: '', logo: '' },
+                adminStoreForm: { id: null, name: '', email: '', whatsapp: '', rubro: '', status: '', cover: '', coverPosX: 50, coverPosY: 50 },
+                merchantProfileForm: { id: null, name: '', rubro: '', description: '', whatsapp: '', cover: '', coverPosX: 50, coverPosY: 50, logo: '' },
 
                 stores: [
-                    { id: 1, name: 'Boutique Las Margaritas', email: 'tienda1@demo.com', password: '123', rubro: 'Indumentaria', description: 'Ropa femenina de temporada y accesorios.', whatsapp: '5493402553700', logo: null, cover: null, status: 'active' },
-                    { id: 2, name: 'Ferretería El Tornillo', email: 'tienda2@demo.com', password: '123', rubro: 'Ferretería', description: 'Herramientas, pinturas y materiales de construcción.', whatsapp: '5493402553700', logo: null, cover: null, status: 'active' }
+                    { id: 1, name: 'Boutique Las Margaritas', email: 'tienda1@demo.com', password: '123', rubro: 'Indumentaria', description: 'Ropa femenina de temporada y accesorios.', whatsapp: '5493402553700', logo: null, cover: null, coverPosX: 50, coverPosY: 50, status: 'active' },
+                    { id: 2, name: 'Ferretería El Tornillo', email: 'tienda2@demo.com', password: '123', rubro: 'Ferretería', description: 'Herramientas, pinturas y materiales de construcción.', whatsapp: '5493402553700', logo: null, cover: null, coverPosX: 50, coverPosY: 50, status: 'active' }
                 ],
                 
                 products: [
@@ -1318,7 +1384,7 @@
                 ],
 
                 // Formularios
-                registerForm: { name: '', rubro: '', description: '', whatsapp: '', email: '', password: '', cover: '' },
+                registerForm: { name: '', rubro: '', description: '', whatsapp: '', email: '', password: '', cover: '', coverPosX: 50, coverPosY: 50 },
                 productForm: { id: null, name: '', price: '', category: '', image: '', description: '' },
 
                 // Inicialización
@@ -1377,6 +1443,40 @@
                         connect();
                     } else {
                         window.addEventListener('db-service-ready', connect, { once: true });
+                    }
+                },
+
+                // Control de arrastre de foto de portada (mouse y táctil)
+                startCoverDrag(e, formKey) {
+                    const rect = e.currentTarget.getBoundingClientRect();
+                    e.currentTarget.setPointerCapture(e.pointerId);
+                    this.coverDrag = {
+                        active: true,
+                        formKey,
+                        startX: e.clientX,
+                        startY: e.clientY,
+                        initX: this[formKey].coverPosX ?? 50,
+                        initY: this[formKey].coverPosY ?? 50,
+                        rectW: rect.width || 1,
+                        rectH: rect.height || 1
+                    };
+                },
+
+                moveCoverDrag(e) {
+                    if (!this.coverDrag.active || !this.coverDrag.formKey) return;
+                    const dx = e.clientX - this.coverDrag.startX;
+                    const dy = e.clientY - this.coverDrag.startY;
+                    const nextX = Math.max(0, Math.min(100, this.coverDrag.initX - (dx / this.coverDrag.rectW) * 100));
+                    const nextY = Math.max(0, Math.min(100, this.coverDrag.initY - (dy / this.coverDrag.rectH) * 100));
+                    this[this.coverDrag.formKey].coverPosX = Math.round(nextX);
+                    this[this.coverDrag.formKey].coverPosY = Math.round(nextY);
+                },
+
+                endCoverDrag(e) {
+                    if (this.coverDrag.active) {
+                        try { e.currentTarget.releasePointerCapture(e.pointerId); } catch (_) {}
+                        this.coverDrag.active = false;
+                        this.coverDrag.formKey = null;
                     }
                 },
 
@@ -1579,7 +1679,12 @@
                 },
                 
                 openAdminEditStore(store) {
-                    this.adminStoreForm = { ...store };
+                    this.adminStoreForm = {
+                        ...store,
+                        cover: store.cover || '',
+                        coverPosX: store.coverPosX ?? 50,
+                        coverPosY: store.coverPosY ?? 50
+                    };
                     this.showAdminEditStoreModal = true;
                 },
 
@@ -1588,6 +1693,8 @@
                     if (file) {
                         try {
                             this.adminStoreForm.cover = await this.compressImage(file, 900, 0.75);
+                            this.adminStoreForm.coverPosX = 50;
+                            this.adminStoreForm.coverPosY = 50;
                         } catch (err) {
                             this.showToast('Error al procesar la imagen de portada.', 'error');
                         }
@@ -1596,11 +1703,17 @@
 
                 async saveAdminEditStore() {
                     try {
+                        const payload = {
+                            ...this.adminStoreForm,
+                            cover: this.adminStoreForm.cover || null,
+                            coverPosX: this.adminStoreForm.coverPosX ?? 50,
+                            coverPosY: this.adminStoreForm.coverPosY ?? 50
+                        };
                         if (this.dbReady) {
-                            await window.dbService.updateStore(this.adminStoreForm.id, { ...this.adminStoreForm });
+                            await window.dbService.updateStore(this.adminStoreForm.id, payload);
                         } else {
                             const index = this.stores.findIndex(s => s.id === this.adminStoreForm.id);
-                            if (index !== -1) this.stores[index] = { ...this.stores[index], ...this.adminStoreForm };
+                            if (index !== -1) this.stores[index] = { ...this.stores[index], ...payload };
                         }
                         this.showAdminEditStoreModal = false;
                         this.showToast('Datos del comercio actualizados.');
@@ -1732,6 +1845,8 @@
                     if (file) {
                         try {
                             this.registerForm.cover = await this.compressImage(file, 900, 0.75);
+                            this.registerForm.coverPosX = 50;
+                            this.registerForm.coverPosY = 50;
                         } catch (err) {
                             this.showToast('Error al procesar la imagen de portada.', 'error');
                         }
@@ -1749,7 +1864,15 @@
                     
                     setTimeout(async () => {
                         try {
-                            const storePayload = { ...this.registerForm, status: 'active', logo: null, cover: this.registerForm.cover || null, createdAt: new Date().toISOString() };
+                            const storePayload = {
+                                ...this.registerForm,
+                                status: 'active',
+                                logo: null,
+                                cover: this.registerForm.cover || null,
+                                coverPosX: this.registerForm.coverPosX ?? 50,
+                                coverPosY: this.registerForm.coverPosY ?? 50,
+                                createdAt: new Date().toISOString()
+                            };
                             let newId = 'local-' + Date.now();
                             if (this.dbReady) {
                                 newId = await window.dbService.createStore(storePayload);
@@ -1759,7 +1882,7 @@
                             
                             this.currentSession = { role: 'merchant', id: newId, ...storePayload };
                             this.currentView = 'merchant_dashboard';
-                            this.registerForm = { name: '', rubro: '', description: '', whatsapp: '', email: '', password: '', cover: '' };
+                            this.registerForm = { name: '', rubro: '', description: '', whatsapp: '', email: '', password: '', cover: '', coverPosX: 50, coverPosY: 50 };
                             
                             this.showToast('¡1 Mes Gratis activado! Bienvenido a tu panel.');
                         } catch (err) {
@@ -1779,6 +1902,8 @@
                         description: this.currentSession.description || '',
                         whatsapp: this.currentSession.whatsapp || '',
                         cover: this.currentSession.cover || '',
+                        coverPosX: this.currentSession.coverPosX ?? 50,
+                        coverPosY: this.currentSession.coverPosY ?? 50,
                         logo: this.currentSession.logo || ''
                     };
                     this.showMerchantProfileModal = true;
@@ -1789,6 +1914,8 @@
                     if (file) {
                         try {
                             this.merchantProfileForm.cover = await this.compressImage(file, 900, 0.75);
+                            this.merchantProfileForm.coverPosX = 50;
+                            this.merchantProfileForm.coverPosY = 50;
                         } catch (err) {
                             this.showToast('Error al procesar la imagen de portada.', 'error');
                         }
@@ -1814,6 +1941,8 @@
                             description: this.merchantProfileForm.description,
                             whatsapp: this.merchantProfileForm.whatsapp,
                             cover: this.merchantProfileForm.cover || null,
+                            coverPosX: this.merchantProfileForm.coverPosX ?? 50,
+                            coverPosY: this.merchantProfileForm.coverPosY ?? 50,
                             logo: this.merchantProfileForm.logo || null
                         };
                         if (this.dbReady) {

@@ -474,9 +474,36 @@
                     </div>
 
                     <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                        <div>
-                            <label class="block text-sm font-semibold text-gray-700 mb-1">WhatsApp de Pedidos * <span class="text-xs font-normal text-gray-400">(con código de país)</span></label>
-                            <input type="text" x-model="registerForm.whatsapp" required class="w-full px-4 py-2.5 rounded-xl border border-gray-300 focus:ring-2 focus:ring-brand-500 outline-none bg-gray-50" placeholder="Ej. 5493402553700">
+                        <div class="relative">
+                            <label class="block text-sm font-semibold text-gray-700 mb-1">WhatsApp de Pedidos * <span class="text-xs font-normal text-gray-400">(prefijo editable, sin 0 ni 15)</span></label>
+                            <div class="flex items-stretch rounded-xl border border-gray-300 bg-gray-50 focus-within:ring-2 focus-within:ring-brand-500 overflow-hidden">
+                                <span class="px-2.5 bg-gray-100 text-gray-600 text-xs font-bold flex items-center border-r border-gray-200 select-none">🇦🇷 +54 9</span>
+                                <div class="flex items-center bg-white border-r border-gray-200">
+                                    <input type="tel" x-model="registerForm.waPrefix" @input="registerForm.waPrefix = registerForm.waPrefix.replace(/\D/g, '').slice(0, 4)" required class="w-14 px-2 py-2.5 bg-white text-brand-700 text-xs font-extrabold text-center outline-none" placeholder="3402" title="Escribí el prefijo (ej. 3402, 341, 336)">
+                                    <button type="button" @click="togglePrefixPicker('register')" class="px-1.5 py-2.5 text-gray-400 hover:text-brand-600 hover:bg-brand-50 transition" title="Buscar ciudad">
+                                        <i class="fa-solid fa-chevron-down text-[10px]"></i>
+                                    </button>
+                                </div>
+                                <input type="tel" x-model="registerForm.waLocal" required class="w-full px-3 py-2.5 bg-gray-50 outline-none text-sm" placeholder="Ej. 553700">
+                            </div>
+                            <!-- Buscador de Prefijo Nacional -->
+                            <div x-show="prefixPickerOpen === 'register'" @click.away="prefixPickerOpen = null" class="absolute left-0 right-0 mt-1 bg-white border border-gray-200 rounded-xl shadow-xl z-50 p-2">
+                                <div class="relative mb-2">
+                                    <i class="fa-solid fa-magnifying-glass absolute left-2.5 top-1/2 -translate-y-1/2 text-gray-400 text-xs"></i>
+                                    <input type="text" x-model="prefixSearch" class="w-full pl-8 pr-3 py-1.5 rounded-lg border border-gray-200 text-xs outline-none focus:ring-2 focus:ring-brand-500" placeholder="Buscar ciudad o prefijo (ej. Rosario, 341)...">
+                                </div>
+                                <div class="max-h-44 overflow-y-auto divide-y divide-gray-50 text-xs">
+                                    <template x-for="p in filteredPrefixes()" :key="p.code">
+                                        <button type="button" @click="selectPrefix('registerForm', p.code)" class="w-full text-left px-2.5 py-2 hover:bg-brand-50 rounded-lg flex items-center justify-between transition">
+                                            <span class="text-gray-700 truncate pr-2" x-text="p.label"></span>
+                                            <span class="font-extrabold text-brand-700 flex-shrink-0" x-text="p.code"></span>
+                                        </button>
+                                    </template>
+                                    <button type="button" x-show="prefixSearch.replace(/\D/g, '').length >= 2 && filteredPrefixes().length === 0" @click="selectPrefix('registerForm', prefixSearch.replace(/\D/g, ''))" class="w-full text-left px-2.5 py-2 bg-brand-50 text-brand-700 font-bold rounded-lg">
+                                        Usar prefijo <span x-text="prefixSearch.replace(/\D/g, '')"></span>
+                                    </button>
+                                </div>
+                            </div>
                         </div>
                         <div>
                             <label class="block text-sm font-semibold text-gray-700 mb-1">Email de Acceso *</label>
@@ -1011,55 +1038,92 @@
                         <label class="block text-xs font-semibold text-gray-600 uppercase mb-1">Nombre</label>
                         <input type="text" x-model="merchantProfileForm.name" required class="w-full px-3.5 py-2 rounded-xl border border-gray-300 text-sm bg-gray-50">
                     </div>
-                    <div>
-                        <label class="block text-xs font-semibold text-gray-600 uppercase mb-1">WhatsApp</label>
-                        <input type="text" x-model="merchantProfileForm.whatsapp" required class="w-full px-3.5 py-2 rounded-xl border border-gray-300 text-sm bg-gray-50">
+                    <div class="relative">
+                        <label class="block text-xs font-semibold text-gray-600 uppercase mb-1">WhatsApp <span class="font-normal normal-case text-gray-400">(prefijo editable)</span></label>
+                        <div class="flex items-stretch rounded-xl border border-gray-300 bg-gray-50 focus-within:ring-2 focus-within:ring-brand-500 overflow-hidden">
+                            <span class="px-2 bg-gray-100 text-gray-600 text-[11px] font-bold flex items-center border-r border-gray-200 select-none">🇦🇷 +54 9</span>
+                            <div class="flex items-center bg-white border-r border-gray-200">
+                                <input type="tel" x-model="merchantProfileForm.waPrefix" @input="merchantProfileForm.waPrefix = merchantProfileForm.waPrefix.replace(/\D/g, '').slice(0, 4)" required class="w-12 px-1.5 py-2 bg-white text-brand-700 text-xs font-extrabold text-center outline-none" placeholder="3402" title="Escribí el prefijo">
+                                <button type="button" @click="togglePrefixPicker('merchant')" class="px-1.5 py-2 text-gray-400 hover:text-brand-600 hover:bg-brand-50 transition" title="Buscar ciudad">
+                                    <i class="fa-solid fa-chevron-down text-[10px]"></i>
+                                </button>
+                            </div>
+                            <input type="tel" x-model="merchantProfileForm.waLocal" required class="w-full px-2.5 py-2 bg-gray-50 outline-none text-sm" placeholder="553700">
+                        </div>
+                        <!-- Buscador de Prefijo Nacional -->
+                        <div x-show="prefixPickerOpen === 'merchant'" @click.away="prefixPickerOpen = null" class="absolute left-0 right-0 mt-1 bg-white border border-gray-200 rounded-xl shadow-xl z-50 p-2">
+                            <div class="relative mb-2">
+                                <i class="fa-solid fa-magnifying-glass absolute left-2.5 top-1/2 -translate-y-1/2 text-gray-400 text-xs"></i>
+                                <input type="text" x-model="prefixSearch" class="w-full pl-8 pr-3 py-1.5 rounded-lg border border-gray-200 text-xs outline-none focus:ring-2 focus:ring-brand-500" placeholder="Buscar ciudad o prefijo...">
+                            </div>
+                            <div class="max-h-40 overflow-y-auto divide-y divide-gray-50 text-xs">
+                                <template x-for="p in filteredPrefixes()" :key="p.code">
+                                    <button type="button" @click="selectPrefix('merchantProfileForm', p.code)" class="w-full text-left px-2.5 py-2 hover:bg-brand-50 rounded-lg flex items-center justify-between transition">
+                                        <span class="text-gray-700 truncate pr-2" x-text="p.label"></span>
+                                        <span class="font-extrabold text-brand-700 flex-shrink-0" x-text="p.code"></span>
+                                    </button>
+                                </template>
+                                <button type="button" x-show="prefixSearch.replace(/\D/g, '').length >= 2 && filteredPrefixes().length === 0" @click="selectPrefix('merchantProfileForm', prefixSearch.replace(/\D/g, ''))" class="w-full text-left px-2.5 py-2 bg-brand-50 text-brand-700 font-bold rounded-lg">
+                                    Usar prefijo <span x-text="prefixSearch.replace(/\D/g, '')"></span>
+                                </button>
+                            </div>
+                        </div>
                     </div>
+                </div>
+
+                <div>
+                    <label class="block text-xs font-semibold text-gray-600 uppercase mb-1">Rubro</label>
+                    <select x-model="merchantProfileForm.rubro" required class="w-full px-3.5 py-2 rounded-xl border border-gray-300 text-sm bg-white">
+                        <template x-for="r in rubros" :key="r">
+                            <option :value="r" x-text="r"></option>
+                        </template>
+                    </select>
                 </div>
 
                 <div>
                     <label class="block text-xs font-semibold text-gray-600 uppercase mb-1">Descripción</label>
-                    <textarea x-model="merchantProfileForm.description" rows="2" class="w-full px-3.5 py-2 rounded-xl border border-gray-300 text-sm bg-gray-50 resize-none"></textarea>
+                    <textarea x-model="merchantProfileForm.description" rows="2" required class="w-full px-3.5 py-2 rounded-xl border border-gray-300 text-sm bg-gray-50 resize-none"></textarea>
                 </div>
 
-                <!-- Dirección, Horarios e Instagram -->
-                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
                     <div>
-                        <label class="block text-xs font-semibold text-gray-600 uppercase mb-1">Dirección del Local</label>
-                        <input type="text" x-model="merchantProfileForm.address" class="w-full px-3.5 py-2 rounded-xl border border-gray-300 text-sm bg-gray-50" placeholder="Ej. San Martín 450">
+                        <label class="block text-xs font-semibold text-gray-600 uppercase mb-1">Dirección</label>
+                        <input type="text" x-model="merchantProfileForm.address" class="w-full px-3 py-2 rounded-xl border border-gray-300 text-sm bg-gray-50" placeholder="San Martín 450">
                     </div>
                     <div>
                         <label class="block text-xs font-semibold text-gray-600 uppercase mb-1">Horarios</label>
-                        <input type="text" x-model="merchantProfileForm.hours" class="w-full px-3.5 py-2 rounded-xl border border-gray-300 text-sm bg-gray-50" placeholder="Lun a Sáb 9 a 20hs">
+                        <input type="text" x-model="merchantProfileForm.hours" class="w-full px-3 py-2 rounded-xl border border-gray-300 text-sm bg-gray-50" placeholder="Lun a Sáb 9 a 20hs">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold text-gray-600 uppercase mb-1">Instagram</label>
+                        <input type="text" x-model="merchantProfileForm.instagram" class="w-full px-3 py-2 rounded-xl border border-gray-300 text-sm bg-gray-50" placeholder="@mitienda">
                     </div>
                 </div>
-                <div>
-                    <label class="block text-xs font-semibold text-gray-600 uppercase mb-1">Instagram (Usuario o Link)</label>
-                    <input type="text" x-model="merchantProfileForm.instagram" class="w-full px-3.5 py-2 rounded-xl border border-gray-300 text-sm bg-gray-50" placeholder="@mitienda.arroyo">
-                </div>
 
-                <!-- Envíos a Domicilio -->
+                <!-- Envíos a domicilio -->
                 <div class="bg-brand-50/70 p-4 rounded-2xl border border-brand-100 space-y-3">
-                    <label class="flex items-center space-x-3 cursor-pointer">
-                        <input type="checkbox" x-model="merchantProfileForm.deliveryEnabled" class="w-4 h-4 text-brand-600 rounded focus:ring-brand-500">
-                        <span class="text-xs font-bold text-brand-900 uppercase"><i class="fa-solid fa-motorcycle mr-1 text-brand-600"></i> Ofrezco Envío a Domicilio</span>
+                    <label class="flex items-center space-x-2.5 cursor-pointer">
+                        <input type="checkbox" x-model="merchantProfileForm.deliveryEnabled" class="w-4 h-4 text-brand-600 rounded">
+                        <span class="text-xs font-bold text-brand-900 uppercase">Habilitar Envío a Domicilio</span>
                     </label>
                     <div x-show="merchantProfileForm.deliveryEnabled">
-                        <label class="block text-xs font-semibold text-gray-600 mb-1">Costo de Envío ($) <span class="font-normal text-gray-400">(Poné 0 si es gratis o a coordinar)</span></label>
+                        <label class="block text-xs text-gray-600 mb-1">Costo fijo de envío ($) <span class="text-gray-400">(0 si es gratis)</span></label>
                         <input type="number" min="0" x-model="merchantProfileForm.deliveryFee" class="w-full px-3.5 py-2 rounded-xl border border-brand-200 text-sm bg-white" placeholder="Ej. 1500">
                     </div>
                 </div>
 
-                <!-- Datos de Cobro Mercado Pago -->
+                <!-- Mercado Pago -->
                 <div class="bg-sky-50/70 p-4 rounded-2xl border border-sky-100 space-y-3">
-                    <p class="text-xs font-bold text-sky-900 uppercase"><i class="fa-solid fa-wallet mr-1 text-sky-600"></i> Datos de Mercado Pago</p>
+                    <p class="text-xs font-bold text-sky-900 uppercase"><i class="fa-solid fa-wallet mr-1 text-sky-600"></i> Cobros por Mercado Pago</p>
                     <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                        <input type="text" x-model="merchantProfileForm.mpAlias" class="w-full px-3.5 py-2 rounded-xl border border-sky-200 text-sm bg-white" placeholder="Alias o CVU">
+                        <input type="text" x-model="merchantProfileForm.mpAlias" class="w-full px-3.5 py-2 rounded-xl border border-sky-200 text-sm bg-white" placeholder="Alias o CVU (ej. mitienda.mp)">
                         <input type="url" x-model="merchantProfileForm.mpLink" class="w-full px-3.5 py-2 rounded-xl border border-sky-200 text-sm bg-white" placeholder="Link de pago (opcional)">
                     </div>
                 </div>
 
-                <button type="submit" class="w-full bg-brand-600 hover:bg-brand-700 text-white font-bold py-3 rounded-xl shadow-lg transition">Guardar Cambios</button>
+                <div class="pt-2">
+                    <button type="submit" class="w-full bg-brand-600 hover:bg-brand-700 text-white font-bold py-3 rounded-xl shadow-lg transition">Guardar Cambios</button>
+                </div>
             </form>
         </div>
     </div>
@@ -1068,211 +1132,203 @@
     <div x-show="showAdminEditStoreModal" class="fixed inset-0 bg-black/60 backdrop-blur-sm z-[60] flex items-center justify-center p-4" x-transition.opacity style="display: none;">
         <div @click.away="showAdminEditStoreModal = false" class="bg-white rounded-3xl max-w-lg w-full p-6 sm:p-7 shadow-2xl relative max-h-[90vh] overflow-y-auto">
             <button @click="showAdminEditStoreModal = false" class="absolute top-4 right-4 text-gray-400 hover:text-gray-700"><i class="fa-solid fa-xmark text-xl"></i></button>
-            <h3 class="text-xl font-bold text-gray-900 mb-5">Editar Comercio (Admin)</h3>
+            <h3 class="text-xl font-bold text-gray-900 mb-5">Editar Comercio (cPanel)</h3>
 
             <form @submit.prevent="saveAdminEditStore()" class="space-y-4">
-                <div class="grid grid-cols-2 gap-3">
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
                     <div>
                         <label class="block text-xs font-semibold text-gray-600 uppercase mb-1">Nombre</label>
                         <input type="text" x-model="adminStoreForm.name" required class="w-full px-3.5 py-2 rounded-xl border border-gray-300 text-sm">
                     </div>
-                    <div>
-                        <label class="block text-xs font-semibold text-gray-600 uppercase mb-1">WhatsApp</label>
-                        <input type="text" x-model="adminStoreForm.whatsapp" required class="w-full px-3.5 py-2 rounded-xl border border-gray-300 text-sm">
+                    <div class="relative">
+                        <label class="block text-xs font-semibold text-gray-600 uppercase mb-1">WhatsApp <span class="font-normal normal-case text-gray-400">(prefijo editable)</span></label>
+                        <div class="flex items-stretch rounded-xl border border-gray-300 bg-white focus-within:ring-2 focus-within:ring-brand-500 overflow-hidden">
+                            <span class="px-2 bg-gray-100 text-gray-600 text-[11px] font-bold flex items-center border-r border-gray-200 select-none">🇦🇷 +54 9</span>
+                            <div class="flex items-center bg-white border-r border-gray-200">
+                                <input type="tel" x-model="adminStoreForm.waPrefix" @input="adminStoreForm.waPrefix = adminStoreForm.waPrefix.replace(/\D/g, '').slice(0, 4)" required class="w-12 px-1.5 py-2 bg-white text-brand-700 text-xs font-extrabold text-center outline-none" placeholder="3402" title="Escribí el prefijo">
+                                <button type="button" @click="togglePrefixPicker('admin')" class="px-1.5 py-2 text-gray-400 hover:text-brand-600 hover:bg-brand-50 transition" title="Buscar ciudad">
+                                    <i class="fa-solid fa-chevron-down text-[10px]"></i>
+                                </button>
+                            </div>
+                            <input type="tel" x-model="adminStoreForm.waLocal" required class="w-full px-2.5 py-2 bg-white outline-none text-sm" placeholder="553700">
+                        </div>
+                        <!-- Buscador de Prefijo Nacional -->
+                        <div x-show="prefixPickerOpen === 'admin'" @click.away="prefixPickerOpen = null" class="absolute left-0 right-0 mt-1 bg-white border border-gray-200 rounded-xl shadow-xl z-50 p-2">
+                            <div class="relative mb-2">
+                                <i class="fa-solid fa-magnifying-glass absolute left-2.5 top-1/2 -translate-y-1/2 text-gray-400 text-xs"></i>
+                                <input type="text" x-model="prefixSearch" class="w-full pl-8 pr-3 py-1.5 rounded-lg border border-gray-200 text-xs outline-none focus:ring-2 focus:ring-brand-500" placeholder="Buscar ciudad o prefijo...">
+                            </div>
+                            <div class="max-h-40 overflow-y-auto divide-y divide-gray-50 text-xs">
+                                <template x-for="p in filteredPrefixes()" :key="p.code">
+                                    <button type="button" @click="selectPrefix('adminStoreForm', p.code)" class="w-full text-left px-2.5 py-2 hover:bg-brand-50 rounded-lg flex items-center justify-between transition">
+                                        <span class="text-gray-700 truncate pr-2" x-text="p.label"></span>
+                                        <span class="font-extrabold text-brand-700 flex-shrink-0" x-text="p.code"></span>
+                                    </button>
+                                </template>
+                                <button type="button" x-show="prefixSearch.replace(/\D/g, '').length >= 2 && filteredPrefixes().length === 0" @click="selectPrefix('adminStoreForm', prefixSearch.replace(/\D/g, ''))" class="w-full text-left px-2.5 py-2 bg-brand-50 text-brand-700 font-bold rounded-lg">
+                                    Usar prefijo <span x-text="prefixSearch.replace(/\D/g, '')"></span>
+                                </button>
+                            </div>
+                        </div>
                     </div>
+                </div>
+
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    <div>
+                        <label class="block text-xs font-semibold text-gray-600 uppercase mb-1">Estado</label>
+                        <select x-model="adminStoreForm.status" class="w-full px-3.5 py-2 rounded-xl border border-gray-300 text-sm bg-white">
+                            <option value="active">Activo</option>
+                            <option value="suspended">Suspendido</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold text-gray-600 uppercase mb-1">Vencimiento</label>
+                        <input type="date" x-model="adminStoreForm.expiresAt" class="w-full px-3.5 py-2 rounded-xl border border-gray-300 text-sm">
+                    </div>
+                </div>
+
+                <div class="flex flex-wrap gap-2">
+                    <button type="button" @click="extendStoreExpiration(30)" class="text-xs font-bold bg-emerald-50 hover:bg-emerald-100 text-emerald-700 border border-emerald-200 px-3 py-1.5 rounded-lg transition">+ 30 días</button>
+                    <button type="button" @click="extendStoreExpiration(365)" class="text-xs font-bold bg-brand-600 hover:bg-brand-700 text-white px-3 py-1.5 rounded-lg transition">+ 1 Año (Renovado)</button>
+                </div>
+
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    <input type="text" x-model="adminStoreForm.mpAlias" class="w-full px-3.5 py-2 rounded-xl border border-gray-300 text-sm" placeholder="Alias/CVU Mercado Pago">
+                    <input type="url" x-model="adminStoreForm.mpLink" class="w-full px-3.5 py-2 rounded-xl border border-gray-300 text-sm" placeholder="Link Mercado Pago">
                 </div>
 
                 <div>
-                    <label class="block text-xs font-semibold text-gray-600 uppercase mb-1">Estado de Cuenta</label>
-                    <select x-model="adminStoreForm.status" class="w-full px-4 py-2.5 rounded-xl border border-gray-300 text-sm bg-white">
-                        <option value="active">Activo (Al día / Mes Gratis)</option>
-                        <option value="suspended">Suspendido (Vencido)</option>
-                    </select>
-                </div>
-
-                <!-- Control de Vencimiento -->
-                <div class="bg-amber-50 p-3.5 rounded-2xl border border-amber-200 space-y-2.5">
-                    <label class="block text-xs font-bold text-amber-900 uppercase"><i class="fa-regular fa-calendar-check mr-1"></i> Fecha de Vencimiento</label>
-                    <input type="date" x-model="adminStoreForm.expiresAt" class="w-full px-3 py-2 rounded-xl border border-amber-200 text-sm bg-white">
-                    <div class="flex gap-2">
-                        <button type="button" @click="extendStoreExpiration(30)" class="flex-1 bg-white hover:bg-amber-100 text-amber-800 border border-amber-200 text-xs font-bold py-1.5 rounded-lg transition">+30 Días</button>
-                        <button type="button" @click="extendStoreExpiration(365)" class="flex-1 bg-amber-600 hover:bg-amber-700 text-white text-xs font-bold py-1.5 rounded-lg transition">+1 Año (Pagó)</button>
-                    </div>
-                </div>
-
-                <!-- Portada Admin -->
-                <div class="bg-gray-50 p-3.5 rounded-2xl border border-gray-200 space-y-2">
-                    <div class="flex items-center justify-between">
-                        <span class="text-xs font-bold text-gray-700 uppercase">Portada</span>
-                        <label class="bg-white border border-gray-300 text-xs font-bold px-3 py-1 rounded-lg cursor-pointer">
-                            Subir / Cambiar
+                    <label class="block text-xs font-semibold text-gray-600 uppercase mb-1">Portada del Comercio</label>
+                    <div class="flex items-center space-x-3">
+                        <img x-show="adminStoreForm.cover" :src="adminStoreForm.cover" class="w-20 h-12 rounded-lg object-cover border">
+                        <label class="bg-gray-100 hover:bg-gray-200 text-gray-700 text-xs font-bold px-3.5 py-2 rounded-xl cursor-pointer">
+                            <i class="fa-solid fa-upload mr-1"></i> Subir portada
                             <input type="file" accept="image/*" @change="handleImageUpload($event, 'adminCover')" class="hidden">
                         </label>
-                    </div>
-                    <div x-show="adminStoreForm.cover" class="h-28 rounded-xl overflow-hidden bg-gray-900 relative">
-                        <img :src="adminStoreForm.cover" class="w-full h-full object-contain">
+                        <button type="button" x-show="adminStoreForm.cover" @click="adminStoreForm.cover = ''" class="text-xs text-rose-600 hover:underline">Quitar</button>
                     </div>
                 </div>
 
-                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 bg-sky-50/70 p-3.5 rounded-2xl border border-sky-100">
-                    <input type="text" x-model="adminStoreForm.mpAlias" class="px-3 py-2 rounded-xl border border-sky-200 text-sm bg-white" placeholder="Alias/CVU MP">
-                    <input type="url" x-model="adminStoreForm.mpLink" class="px-3 py-2 rounded-xl border border-sky-200 text-sm bg-white" placeholder="Link MP">
-                </div>
-
-                <button type="submit" class="w-full bg-brand-600 hover:bg-brand-700 text-white font-bold py-3 rounded-xl shadow-lg transition">Guardar Cambios</button>
+                <button type="submit" class="w-full bg-gray-900 hover:bg-gray-800 text-white font-bold py-3 rounded-xl shadow transition">Guardar Cambios</button>
             </form>
         </div>
     </div>
 
-    <!-- ================= MODAL: CARRITO DE COMPRAS, MERCADO PAGO Y WHATSAPP ================= -->
-    <div x-show="showCartModal" class="fixed inset-0 bg-black/60 backdrop-blur-sm z-[65] flex items-center justify-center p-4" x-transition.opacity style="display: none;">
-        <div @click.away="showCartModal = false" class="bg-white rounded-3xl max-w-lg w-full p-6 shadow-2xl relative max-h-[92vh] overflow-y-auto">
+    <!-- ================= MODAL: CARRITO Y PAGO MERCADO PAGO ================= -->
+    <div x-show="showCartModal && currentStoreView" class="fixed inset-0 bg-black/60 backdrop-blur-sm z-[65] flex items-center justify-center p-4" x-transition.opacity style="display: none;">
+        <div @click.away="showCartModal = false" class="bg-white rounded-3xl max-w-lg w-full p-6 shadow-2xl relative max-h-[90vh] overflow-y-auto">
             <button @click="showCartModal = false" class="absolute top-4 right-4 text-gray-400 hover:text-gray-700"><i class="fa-solid fa-xmark text-xl"></i></button>
-            <h3 class="text-xl font-extrabold text-gray-900 mb-1 flex items-center space-x-2">
+            <h3 class="text-xl font-bold text-gray-900 mb-1 flex items-center space-x-2">
                 <i class="fa-solid fa-cart-shopping text-brand-600"></i>
                 <span>Tu Pedido</span>
             </h3>
             <p class="text-xs text-gray-500 mb-4" x-text="currentStoreView ? currentStoreView.name : ''"></p>
 
-            <!-- Carrito Vacío -->
-            <div x-show="cart.length === 0" class="text-center py-10">
-                <i class="fa-solid fa-basket-shopping text-4xl text-gray-300 mb-3"></i>
-                <p class="text-gray-500 text-sm">Todavía no agregaste productos al carrito.</p>
+            <!-- Lista de productos -->
+            <div x-show="cart.length === 0" class="text-center py-8 text-gray-400 text-sm">
+                Tu carrito está vacío. Agregá productos del catálogo.
             </div>
 
-            <!-- Contenido del Carrito -->
             <div x-show="cart.length > 0" class="space-y-4">
-                <!-- Lista de ítems -->
-                <div class="divide-y divide-gray-100 border border-gray-100 rounded-2xl overflow-hidden max-h-52 overflow-y-auto">
+                <div class="divide-y divide-gray-100 border border-gray-100 rounded-2xl overflow-hidden">
                     <template x-for="item in cart" :key="item.id">
-                        <div class="p-3 flex items-center justify-between gap-3 bg-white">
+                        <div class="p-3 flex items-center justify-between gap-2 bg-gray-50/50">
                             <div class="min-w-0 flex-1">
                                 <p class="font-bold text-sm text-gray-900 truncate" x-text="item.name"></p>
-                                <p class="text-xs text-brand-600 font-bold" x-text="formatPrice(item.price * item.qty)"></p>
+                                <p class="text-xs text-gray-500" x-text="formatPrice(item.price) + ' c/u'"></p>
                             </div>
                             <div class="flex items-center space-x-2">
-                                <button type="button" @click="updateCartQty(item.id, -1)" class="w-7 h-7 rounded-lg bg-gray-100 hover:bg-gray-200 font-bold text-gray-700">-</button>
+                                <button type="button" @click="updateCartQty(item.id, -1)" class="w-7 h-7 rounded-lg bg-white border border-gray-200 hover:bg-gray-100 font-bold text-sm">-</button>
                                 <span class="text-sm font-extrabold w-5 text-center" x-text="item.qty"></span>
-                                <button type="button" @click="updateCartQty(item.id, 1)" class="w-7 h-7 rounded-lg bg-brand-100 hover:bg-brand-200 font-bold text-brand-700">+</button>
+                                <button type="button" @click="updateCartQty(item.id, 1)" class="w-7 h-7 rounded-lg bg-white border border-gray-200 hover:bg-gray-100 font-bold text-sm">+</button>
                             </div>
+                            <span class="font-extrabold text-sm text-gray-900 w-20 text-right" x-text="formatPrice(item.price * item.qty)"></span>
                         </div>
                     </template>
                 </div>
 
-                <!-- Resumen Total -->
-                <div class="bg-gray-900 text-white rounded-2xl p-4 space-y-2">
-                    <div class="flex justify-between text-xs text-gray-300">
-                        <span>Subtotal productos</span>
-                        <span x-text="formatPrice(cartSubtotal())"></span>
-                    </div>
-                    <div x-show="checkoutForm.deliveryType === 'envio'" class="flex justify-between text-xs text-gray-300">
-                        <span>Envío a domicilio</span>
-                        <span x-text="cartDeliveryCost() > 0 ? formatPrice(cartDeliveryCost()) : 'A coordinar / Gratis'"></span>
-                    </div>
-                    <div class="flex justify-between items-center pt-2 border-t border-white/10">
-                        <div>
-                            <p class="text-xs text-gray-400">Total a pagar</p>
-                            <p class="text-2xl font-extrabold text-brand-400" x-text="formatPrice(cartTotal())"></p>
-                        </div>
-                        <button type="button" @click="clearCart()" class="text-xs text-gray-400 hover:text-rose-400 underline">Vaciar carrito</button>
-                    </div>
+                <div class="flex justify-end">
+                    <button type="button" @click="clearCart()" class="text-xs font-semibold text-rose-600 hover:underline">Vaciar carrito</button>
                 </div>
 
-                <!-- Modalidad de Entrega -->
-                <div>
-                    <label class="block text-xs font-semibold text-gray-600 uppercase mb-1.5">Modalidad de Entrega</label>
-                    <div class="grid grid-cols-2 gap-2.5">
-                        <button type="button" @click="checkoutForm.deliveryType = 'retiro'" :class="checkoutForm.deliveryType === 'retiro' ? 'bg-brand-50 border-brand-500 text-brand-900 ring-2 ring-brand-200' : 'bg-white border-gray-200 text-gray-600 hover:bg-gray-50'" class="border rounded-xl p-2.5 text-left transition flex items-center space-x-2">
-                            <i class="fa-solid fa-store text-brand-600"></i>
-                            <div>
-                                <p class="font-bold text-xs leading-tight">Retiro en local</p>
-                                <p class="text-[10px] opacity-75">Sin costo</p>
-                            </div>
+                <!-- Entrega -->
+                <div x-show="currentStoreView && currentStoreView.deliveryEnabled" class="bg-gray-50 p-3.5 rounded-2xl border border-gray-200">
+                    <p class="text-xs font-bold text-gray-700 uppercase mb-2">Forma de Entrega</p>
+                    <div class="grid grid-cols-2 gap-2">
+                        <button type="button" @click="checkoutForm.deliveryType = 'retiro'" :class="checkoutForm.deliveryType === 'retiro' ? 'bg-brand-600 text-white' : 'bg-white text-gray-700 border'" class="py-2 px-3 rounded-xl text-xs font-bold transition">Retiro en el local</button>
+                        <button type="button" @click="checkoutForm.deliveryType = 'envio'" :class="checkoutForm.deliveryType === 'envio' ? 'bg-brand-600 text-white' : 'bg-white text-gray-700 border'" class="py-2 px-3 rounded-xl text-xs font-bold transition">
+                            Envío <span x-show="Number(currentStoreView?.deliveryFee) > 0" x-text="'(+' + formatPrice(currentStoreView?.deliveryFee) + ')'"></span>
                         </button>
-                        <button type="button" x-show="currentStoreView && currentStoreView.deliveryEnabled" @click="checkoutForm.deliveryType = 'envio'" :class="checkoutForm.deliveryType === 'envio' ? 'bg-brand-50 border-brand-500 text-brand-900 ring-2 ring-brand-200' : 'bg-white border-gray-200 text-gray-600 hover:bg-gray-50'" class="border rounded-xl p-2.5 text-left transition flex items-center space-x-2">
-                            <i class="fa-solid fa-motorcycle text-brand-600"></i>
-                            <div>
-                                <p class="font-bold text-xs leading-tight">Envío a domicilio</p>
-                                <p class="text-[10px] opacity-75" x-text="Number(currentStoreView?.deliveryFee) > 0 ? formatPrice(currentStoreView.deliveryFee) : 'Gratis / A coordinar'"></p>
-                            </div>
-                        </button>
-                    </div>
-                </div>
-
-                <!-- Datos del Comprador -->
-                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                    <div>
-                        <label class="block text-xs font-semibold text-gray-600 uppercase mb-1">Tu Nombre *</label>
-                        <input type="text" x-model="checkoutForm.buyerName" required class="w-full px-3.5 py-2.5 rounded-xl border border-gray-300 focus:ring-2 focus:ring-brand-500 outline-none text-sm bg-gray-50" placeholder="Ej. Juan Pérez">
-                    </div>
-                    <div>
-                        <label class="block text-xs font-semibold text-gray-600 uppercase mb-1" x-text="checkoutForm.deliveryType === 'envio' ? 'Dirección de Envío *' : 'Nota / Horario retiro'"></label>
-                        <input type="text" x-model="checkoutForm.notes" class="w-full px-3.5 py-2.5 rounded-xl border border-gray-300 focus:ring-2 focus:ring-brand-500 outline-none text-sm bg-gray-50" :placeholder="checkoutForm.deliveryType === 'envio' ? 'Calle y altura' : 'Ej. Paso a las 18hs'">
                     </div>
                 </div>
 
                 <!-- Forma de Pago -->
-                <div>
-                    <label class="block text-xs font-semibold text-gray-600 uppercase mb-1.5">Forma de Pago</label>
-                    <div class="grid grid-cols-2 gap-2.5">
-                        <button type="button" @click="checkoutForm.paymentMethod = 'mercadopago'" :class="checkoutForm.paymentMethod === 'mercadopago' ? 'bg-sky-50 border-sky-500 text-sky-900 ring-2 ring-sky-200' : 'bg-white border-gray-200 text-gray-600'" class="border rounded-xl p-2.5 text-left transition flex items-center space-x-2">
-                            <i class="fa-solid fa-wallet text-sky-600"></i>
-                            <span class="font-bold text-xs">Mercado Pago</span>
-                        </button>
-                        <button type="button" @click="checkoutForm.paymentMethod = 'efectivo'" :class="checkoutForm.paymentMethod === 'efectivo' ? 'bg-brand-50 border-brand-500 text-brand-900 ring-2 ring-brand-200' : 'bg-white border-gray-200 text-gray-600'" class="border rounded-xl p-2.5 text-left transition flex items-center space-x-2">
-                            <i class="fa-solid fa-money-bill-wave text-brand-600"></i>
-                            <span class="font-bold text-xs">Efectivo / Acordar</span>
-                        </button>
+                <div class="bg-sky-50/70 p-4 rounded-2xl border border-sky-100 space-y-3">
+                    <p class="text-xs font-bold text-sky-900 uppercase">Forma de Pago</p>
+                    <div class="grid grid-cols-2 gap-2">
+                        <button type="button" @click="checkoutForm.paymentMethod = 'mercadopago'" :class="checkoutForm.paymentMethod === 'mercadopago' ? 'bg-sky-600 text-white' : 'bg-white text-gray-700 border'" class="py-2 px-3 rounded-xl text-xs font-bold transition">Mercado Pago</button>
+                        <button type="button" @click="checkoutForm.paymentMethod = 'efectivo'" :class="checkoutForm.paymentMethod === 'efectivo' ? 'bg-gray-900 text-white' : 'bg-white text-gray-700 border'" class="py-2 px-3 rounded-xl text-xs font-bold transition">Efectivo / Local</button>
                     </div>
-                </div>
 
-                <!-- Sección Mercado Pago + Comprobante -->
-                <div x-show="checkoutForm.paymentMethod === 'mercadopago'" class="bg-sky-50 border border-sky-200 rounded-2xl p-4 space-y-3">
-                    <div x-show="currentStoreView && currentStoreView.mpAlias" class="flex items-center justify-between gap-2 bg-white p-2.5 rounded-xl border border-sky-100">
-                        <div class="min-w-0">
-                            <p class="text-[10px] font-bold text-sky-700 uppercase">Alias / CVU Mercado Pago</p>
-                            <p class="font-extrabold text-sm text-gray-900 truncate" x-text="currentStoreView?.mpAlias"></p>
+                    <div x-show="checkoutForm.paymentMethod === 'mercadopago'" class="space-y-2.5 pt-1">
+                        <div x-show="currentStoreView?.mpAlias" class="flex items-center justify-between bg-white p-2.5 rounded-xl border border-sky-200">
+                            <div class="min-w-0">
+                                <span class="block text-[10px] font-bold text-gray-400 uppercase">Alias / CVU</span>
+                                <span class="text-xs font-extrabold text-gray-900 truncate block" x-text="currentStoreView?.mpAlias"></span>
+                            </div>
+                            <button type="button" @click="copyText(currentStoreView.mpAlias)" class="bg-sky-100 hover:bg-sky-200 text-sky-800 text-xs font-bold px-3 py-1.5 rounded-lg flex-shrink-0">Copiar</button>
                         </div>
-                        <button type="button" @click="copyText(currentStoreView.mpAlias)" class="bg-sky-600 hover:bg-sky-700 text-white text-xs font-bold px-3 py-1.5 rounded-lg flex-shrink-0">
-                            <i class="fa-regular fa-copy mr-1"></i> Copiar
-                        </button>
-                    </div>
 
-                    <a x-show="currentStoreView && currentStoreView.mpLink" :href="currentStoreView?.mpLink" target="_blank" class="block w-full text-center bg-sky-600 hover:bg-sky-700 text-white font-bold py-2 rounded-xl text-xs transition">
-                        <i class="fa-solid fa-arrow-up-right-from-square mr-1"></i> Abrir Link de Mercado Pago
-                    </a>
+                        <a x-show="currentStoreView?.mpLink" :href="currentStoreView?.mpLink" target="_blank" class="block w-full text-center bg-sky-600 hover:bg-sky-700 text-white text-xs font-bold py-2.5 rounded-xl transition">
+                            <i class="fa-solid fa-up-right-from-square mr-1"></i> Abrir Link de Mercado Pago
+                        </a>
 
-                    <p x-show="currentStoreView && !currentStoreView.mpAlias && !currentStoreView.mpLink" class="text-xs text-sky-800">
-                        Pedile el Alias o Link de Mercado Pago al comercio directamente al enviar el pedido por WhatsApp.
-                    </p>
-
-                    <!-- Adjuntar Comprobante (Imagen o PDF) -->
-                    <div class="pt-1 border-t border-sky-200/70">
-                        <label class="block text-[11px] font-bold text-sky-900 mb-1.5">Adjuntar Comprobante (Imagen o PDF)</label>
-                        <div class="flex items-center gap-2">
-                            <label class="flex-1 bg-white hover:bg-sky-100/50 border border-dashed border-sky-300 rounded-xl px-3 py-2 text-xs font-semibold text-sky-800 cursor-pointer flex items-center justify-center space-x-2 transition">
-                                <i class="fa-solid fa-paperclip"></i>
-                                <span class="truncate" x-text="checkoutForm.receiptName || 'Seleccionar foto o PDF del comprobante'"></span>
-                                <input type="file" accept="image/*,application/pdf" @change="handleReceiptUpload($event)" class="hidden">
+                        <!-- Subir comprobante -->
+                        <div class="bg-white p-3 rounded-xl border border-dashed border-sky-300">
+                            <label class="flex items-center justify-between cursor-pointer text-xs">
+                                <span class="font-semibold text-gray-700 truncate pr-2">
+                                    <i class="fa-solid fa-file-invoice-dollar text-sky-600 mr-1.5"></i>
+                                    <span x-text="checkoutForm.receiptName || 'Adjuntar comprobante (Imagen o PDF)'"></span>
+                                </span>
+                                <span class="bg-sky-50 text-sky-700 font-bold px-2.5 py-1 rounded-lg flex-shrink-0">Elegir</span>
+                                <input type="file" accept="image/*,.pdf" @change="handleReceiptUpload($event)" class="hidden">
                             </label>
-                            <button type="button" x-show="checkoutForm.receiptFile" @click="clearReceipt()" class="text-rose-600 hover:bg-rose-50 p-2 rounded-lg" title="Quitar comprobante">
-                                <i class="fa-solid fa-trash"></i>
-                            </button>
+                            <div x-show="checkoutForm.receiptFile" class="flex items-center justify-between mt-2 pt-2 border-t border-gray-100">
+                                <button type="button" x-show="canNativeShare()" @click="shareReceiptNative()" class="text-xs font-bold text-sky-700 hover:underline">
+                                    <i class="fa-solid fa-share mr-1"></i> Compartir archivo directo
+                                </button>
+                                <button type="button" @click="clearReceipt()" class="text-xs text-rose-600 font-semibold hover:underline ml-auto">Quitar</button>
+                            </div>
                         </div>
                     </div>
                 </div>
 
-                <!-- Botones de Envío -->
-                <div class="space-y-2 pt-1">
-                    <button type="button" @click="sendOrderToWhatsApp()" class="w-full bg-green-600 hover:bg-green-700 text-white font-extrabold py-3.5 rounded-xl shadow-lg transition flex items-center justify-center space-x-2">
-                        <i class="fa-brands fa-whatsapp text-xl"></i>
-                        <span>Enviar Pedido por WhatsApp</span>
-                    </button>
-                    <button type="button" x-show="checkoutForm.receiptFile && navigator.share" @click="shareReceiptNative()" class="w-full bg-sky-100 hover:bg-sky-200 text-sky-900 font-bold py-2.5 rounded-xl text-xs transition flex items-center justify-center space-x-2">
-                        <i class="fa-solid fa-share-from-square"></i>
-                        <span>Compartir archivo de comprobante directo</span>
-                    </button>
+                <!-- Datos del comprador -->
+                <div class="space-y-2.5">
+                    <input type="text" x-model="checkoutForm.buyerName" required class="w-full px-3.5 py-2.5 rounded-xl border border-gray-300 text-sm bg-gray-50 outline-none focus:ring-2 focus:ring-brand-500" placeholder="Tu Nombre y Apellido *">
+                    <input type="text" x-model="checkoutForm.notes" class="w-full px-3.5 py-2.5 rounded-xl border border-gray-300 text-sm bg-gray-50 outline-none focus:ring-2 focus:ring-brand-500" :placeholder="checkoutForm.deliveryType === 'envio' ? 'Dirección exacta para el envío *' : 'Aclaraciones (opcional)'">
                 </div>
+
+                <!-- Resumen Total -->
+                <div class="bg-gray-900 text-white p-4 rounded-2xl space-y-1">
+                    <div class="flex justify-between text-xs text-gray-300">
+                        <span>Subtotal</span>
+                        <span x-text="formatPrice(cartSubtotal())"></span>
+                    </div>
+                    <div x-show="cartDeliveryCost() > 0" class="flex justify-between text-xs text-gray-300">
+                        <span>Envío</span>
+                        <span x-text="formatPrice(cartDeliveryCost())"></span>
+                    </div>
+                    <div class="flex justify-between text-base font-extrabold pt-1 border-t border-white/10">
+                        <span>TOTAL</span>
+                        <span class="text-brand-400" x-text="formatPrice(cartTotal())"></span>
+                    </div>
+                </div>
+
+                <button type="button" @click="sendOrderToWhatsApp()" class="w-full bg-green-500 hover:bg-green-600 text-white font-extrabold py-3.5 rounded-xl shadow-lg transition flex items-center justify-center space-x-2">
+                    <i class="fa-brands fa-whatsapp text-xl"></i>
+                    <span>Enviar Pedido por WhatsApp</span>
+                </button>
             </div>
         </div>
     </div>
@@ -1358,24 +1414,26 @@
                         currentUser = cred.user;
                     }
 
+                    const onSnapError = (err) => console.warn('Firestore snapshot aviso:', err.message);
+
                     onSnapshot(publicDoc('config', 'main'), (snap) => {
                         if (snap.exists() && callbacks.onConfig) callbacks.onConfig(snap.data());
-                    });
+                    }, onSnapError);
 
                     onSnapshot(publicCol('stores'), (snap) => {
                         const list = snap.docs.map(d => ({ id: d.id, ...d.data() }));
                         if (callbacks.onStores) callbacks.onStores(list);
-                    });
+                    }, onSnapError);
 
                     onSnapshot(publicCol('products'), (snap) => {
                         const list = snap.docs.map(d => ({ id: d.id, ...d.data() }));
                         if (callbacks.onProducts) callbacks.onProducts(list);
-                    });
+                    }, onSnapError);
 
                     onSnapshot(publicCol('ads'), (snap) => {
                         const list = snap.docs.map(d => ({ id: d.id, ...d.data() }));
                         if (callbacks.onAds) callbacks.onAds(list);
-                    });
+                    }, onSnapError);
 
                     return true;
                 } catch (err) {
@@ -1484,6 +1542,35 @@
                 // Arrastre de portada
                 dragState: { active: false, target: null, startX: 0, startY: 0, initX: 50, initY: 50 },
 
+                // Buscador de Prefijos Nacionales (Argentina +54 9)
+                prefixPickerOpen: null,
+                prefixSearch: '',
+                arPrefixes: [
+                    { code: '3402', label: 'Arroyo Seco / Fighiera / Gral. Lagos / V. Constitución' },
+                    { code: '341', label: 'Rosario / Pueblo Esther / Villa Gdor. Gálvez' },
+                    { code: '336', label: 'San Nicolás / Ramallo' },
+                    { code: '3476', label: 'San Lorenzo / Pto. Gral. San Martín' },
+                    { code: '3464', label: 'Casilda / Pujato / Zavalla' },
+                    { code: '3462', label: 'Venado Tuerto / Firmat' },
+                    { code: '3471', label: 'Cañada de Gómez / Armstrong' },
+                    { code: '342', label: 'Santa Fe / Santo Tomé' },
+                    { code: '3492', label: 'Rafaela' },
+                    { code: '11', label: 'Buenos Aires / CABA / GBA' },
+                    { code: '351', label: 'Córdoba' },
+                    { code: '343', label: 'Paraná' },
+                    { code: '221', label: 'La Plata' },
+                    { code: '223', label: 'Mar del Plata' },
+                    { code: '261', label: 'Mendoza' },
+                    { code: '381', label: 'San Miguel de Tucumán' },
+                    { code: '387', label: 'Salta' },
+                    { code: '299', label: 'Neuquén' },
+                    { code: '291', label: 'Bahía Blanca' },
+                    { code: '379', label: 'Corrientes' },
+                    { code: '362', label: 'Resistencia' },
+                    { code: '376', label: 'Posadas' },
+                    { code: '294', label: 'San Carlos de Bariloche' }
+                ],
+
                 // Configuración de Plataforma
                 platformSettings: {
                     appName: 'Arroyo App',
@@ -1525,10 +1612,10 @@
                 },
 
                 // Formularios
-                registerForm: { name: '', rubro: '', description: '', whatsapp: '', email: '', password: '', cover: '', coverPosX: 50, coverPosY: 50, coverFit: 'contain', mpAlias: '', mpLink: '', address: '', hours: '', instagram: '' },
+                registerForm: { name: '', rubro: '', description: '', whatsapp: '', waPrefix: '3402', waLocal: '', email: '', password: '', cover: '', coverPosX: 50, coverPosY: 50, coverFit: 'contain', mpAlias: '', mpLink: '', address: '', hours: '', instagram: '' },
                 productForm: { id: null, name: '', price: '', oldPrice: '', inStock: true, category: '', image: '', description: '' },
-                merchantProfileForm: { id: null, name: '', rubro: '', description: '', whatsapp: '', cover: '', coverPosX: 50, coverPosY: 50, coverFit: 'contain', logo: '', mpAlias: '', mpLink: '', address: '', hours: '', instagram: '', deliveryEnabled: false, deliveryFee: 0 },
-                adminStoreForm: { id: null, name: '', email: '', whatsapp: '', rubro: '', status: 'active', cover: '', coverPosX: 50, coverPosY: 50, coverFit: 'contain', mpAlias: '', mpLink: '', expiresAt: '' },
+                merchantProfileForm: { id: null, name: '', rubro: '', description: '', whatsapp: '', waPrefix: '3402', waLocal: '', cover: '', coverPosX: 50, coverPosY: 50, coverFit: 'contain', logo: '', mpAlias: '', mpLink: '', address: '', hours: '', instagram: '', deliveryEnabled: false, deliveryFee: 0 },
+                adminStoreForm: { id: null, name: '', email: '', whatsapp: '', waPrefix: '3402', waLocal: '', rubro: '', status: 'active', cover: '', coverPosX: 50, coverPosY: 50, coverFit: 'contain', mpAlias: '', mpLink: '', expiresAt: '' },
 
                 // Inicialización
                 init() {
@@ -1609,11 +1696,68 @@
                     this.canInstallPWA = false;
                 },
 
+                canNativeShare() {
+                    return typeof navigator !== 'undefined' && typeof navigator.share === 'function';
+                },
+
                 showToast(msg, type = 'success') {
                     this.toastMessage = msg;
                     this.toastType = type;
                     clearTimeout(this.toastTimer);
                     this.toastTimer = setTimeout(() => { this.toastMessage = ''; }, 3200);
+                },
+
+                // Helpers de Prefijo Nacional y WhatsApp (+54 9 automático)
+                togglePrefixPicker(pickerKey) {
+                    if (this.prefixPickerOpen === pickerKey) {
+                        this.prefixPickerOpen = null;
+                    } else {
+                        this.prefixSearch = '';
+                        this.prefixPickerOpen = pickerKey;
+                    }
+                },
+
+                filteredPrefixes() {
+                    const q = this.prefixSearch.trim().toLowerCase();
+                    if (!q) return this.arPrefixes;
+                    return this.arPrefixes.filter(p =>
+                        p.code.includes(q) || p.label.toLowerCase().includes(q)
+                    );
+                },
+
+                selectPrefix(formName, code) {
+                    const cleanCode = String(code || '3402').replace(/\D/g, '').replace(/^0+/, '');
+                    if (this[formName] && cleanCode) {
+                        this[formName].waPrefix = cleanCode;
+                    }
+                    this.prefixPickerOpen = null;
+                    this.prefixSearch = '';
+                },
+
+                buildWhatsApp(prefix, local) {
+                    const cleanPrefix = String(prefix || '3402').replace(/\D/g, '').replace(/^0+/, '');
+                    let cleanLocal = String(local || '').replace(/\D/g, '');
+                    if (cleanLocal.startsWith('549') && cleanLocal.length >= 12) return cleanLocal;
+                    if (cleanLocal.startsWith('15') && cleanLocal.length > 6) cleanLocal = cleanLocal.slice(2);
+                    return '549' + cleanPrefix + cleanLocal;
+                },
+
+                splitWhatsApp(fullNumber) {
+                    let digits = String(fullNumber || '').replace(/\D/g, '');
+                    if (digits.startsWith('549')) digits = digits.slice(3);
+                    else if (digits.startsWith('54')) digits = digits.slice(2);
+                    if (digits.startsWith('0')) digits = digits.slice(1);
+                    if (!digits) return { prefix: '3402', local: '' };
+
+                    const sorted = [...this.arPrefixes].sort((a, b) => b.code.length - a.code.length);
+                    const matched = sorted.find(p => digits.startsWith(p.code));
+                    if (matched) {
+                        return { prefix: matched.code, local: digits.slice(matched.code.length) };
+                    }
+                    if (digits.length >= 10) {
+                        return { prefix: digits.slice(0, digits.length - 6), local: digits.slice(-6) };
+                    }
+                    return { prefix: '3402', local: digits };
                 },
 
                 // Helpers de URL, Slug y Formato
@@ -1626,8 +1770,10 @@
                 },
 
                 getStoreUrl(store) {
-                    if (!store) return window.location.origin;
-                    const base = window.location.origin + window.location.pathname;
+                    const fallbackBase = 'https://arroyoapp27.vercel.app/';
+                    const isHttp = window.location.protocol === 'http:' || window.location.protocol === 'https:';
+                    const base = isHttp ? (window.location.origin + window.location.pathname) : fallbackBase;
+                    if (!store) return base;
                     const slug = store.slug || this.makeSlug(store.name);
                     return `${base}?tienda=${encodeURIComponent(slug)}`;
                 },
@@ -1648,9 +1794,11 @@
                     this.currentView = 'home';
                     this.currentStoreView = null;
                     try {
-                        const url = new URL(window.location.href);
-                        url.searchParams.delete('tienda');
-                        window.history.replaceState({}, '', url.toString());
+                        if (window.location.protocol === 'http:' || window.location.protocol === 'https:') {
+                            const url = new URL(window.location.href);
+                            url.searchParams.delete('tienda');
+                            window.history.replaceState({}, '', url.toString());
+                        }
                     } catch (_) {}
                 },
 
@@ -1733,9 +1881,11 @@
                     window.scrollTo(0, 0);
 
                     try {
-                        const url = new URL(window.location.href);
-                        url.searchParams.set('tienda', store.slug || this.makeSlug(store.name));
-                        window.history.replaceState({}, '', url.toString());
+                        if (window.location.protocol === 'http:' || window.location.protocol === 'https:') {
+                            const url = new URL(window.location.href);
+                            url.searchParams.set('tienda', store.slug || this.makeSlug(store.name));
+                            window.history.replaceState({}, '', url.toString());
+                        }
                     } catch (_) {}
 
                     const isOwnerOrAdmin = this.currentSession && (this.currentSession.role === 'admin' || this.currentSession.id === store.id);
@@ -1877,7 +2027,7 @@
                 },
 
                 async shareReceiptNative() {
-                    if (!this.checkoutForm.receiptFile || !navigator.share) return;
+                    if (!this.checkoutForm.receiptFile || !this.canNativeShare()) return;
                     try {
                         await navigator.share({
                             title: 'Comprobante de Pago',
@@ -1888,6 +2038,18 @@
                 },
 
                 copyText(text, customMsg = '¡Alias/CVU copiado al portapapeles!') {
+                    if (navigator.clipboard && navigator.clipboard.writeText) {
+                        navigator.clipboard.writeText(text).then(() => {
+                            this.showToast(customMsg);
+                        }).catch(() => {
+                            this.fallbackCopyText(text, customMsg);
+                        });
+                    } else {
+                        this.fallbackCopyText(text, customMsg);
+                    }
+                },
+
+                fallbackCopyText(text, customMsg) {
                     const el = document.createElement('textarea');
                     el.value = text;
                     el.setAttribute('readonly', '');
@@ -2126,6 +2288,7 @@
                         }
                         const storePayload = {
                             ...this.registerForm,
+                            whatsapp: this.buildWhatsApp(this.registerForm.waPrefix, this.registerForm.waLocal),
                             email: emailLower,
                             slug: this.makeSlug(this.registerForm.name),
                             status: 'active',
@@ -2152,7 +2315,7 @@
                         }
                         this.currentSession = { role: 'merchant', id: newId, ...storePayload };
                         this.currentView = 'merchant_dashboard';
-                        this.registerForm = { name: '', rubro: '', description: '', whatsapp: '', email: '', password: '', cover: '', coverPosX: 50, coverPosY: 50, coverFit: 'contain', mpAlias: '', mpLink: '', address: '', hours: '', instagram: '' };
+                        this.registerForm = { name: '', rubro: '', description: '', whatsapp: '', waPrefix: '3402', waLocal: '', email: '', password: '', cover: '', coverPosX: 50, coverPosY: 50, coverFit: 'contain', mpAlias: '', mpLink: '', address: '', hours: '', instagram: '' };
                         this.showToast('¡Tienda creada con 1 Mes Gratis!');
                     } catch (err) {
                         this.showToast('Error al registrar el comercio.', 'error');
@@ -2179,12 +2342,15 @@
 
                 openMerchantProfileModal() {
                     if (!this.currentSession || this.currentSession.role !== 'merchant') return;
+                    const waParts = this.splitWhatsApp(this.currentSession.whatsapp);
                     this.merchantProfileForm = {
                         id: this.currentSession.id,
                         name: this.currentSession.name || '',
                         rubro: this.currentSession.rubro || '',
                         description: this.currentSession.description || '',
                         whatsapp: this.currentSession.whatsapp || '',
+                        waPrefix: waParts.prefix,
+                        waLocal: waParts.local,
                         cover: this.currentSession.cover || '',
                         coverPosX: this.currentSession.coverPosX ?? 50,
                         coverPosY: this.currentSession.coverPosY ?? 50,
@@ -2208,7 +2374,7 @@
                             slug: this.makeSlug(this.merchantProfileForm.name),
                             rubro: this.merchantProfileForm.rubro,
                             description: this.merchantProfileForm.description,
-                            whatsapp: this.merchantProfileForm.whatsapp,
+                            whatsapp: this.buildWhatsApp(this.merchantProfileForm.waPrefix, this.merchantProfileForm.waLocal),
                             cover: this.merchantProfileForm.cover || null,
                             coverPosX: this.merchantProfileForm.coverPosX ?? 50,
                             coverPosY: this.merchantProfileForm.coverPosY ?? 50,
@@ -2307,8 +2473,11 @@
                 // Acciones del Admin (cPanel)
                 openAdminEditStore(store) {
                     const defaultExp = store.expiresAt || (store.createdAt ? this.addDaysISO(store.createdAt.split('T')[0], 30) : this.addDaysISO(null, 30));
+                    const waParts = this.splitWhatsApp(store.whatsapp);
                     this.adminStoreForm = {
                         ...store,
+                        waPrefix: waParts.prefix,
+                        waLocal: waParts.local,
                         cover: store.cover || '',
                         coverPosX: store.coverPosX ?? 50,
                         coverPosY: store.coverPosY ?? 50,
@@ -2324,7 +2493,7 @@
                     try {
                         const updated = {
                             name: this.adminStoreForm.name,
-                            whatsapp: this.adminStoreForm.whatsapp,
+                            whatsapp: this.buildWhatsApp(this.adminStoreForm.waPrefix, this.adminStoreForm.waLocal),
                             status: this.adminStoreForm.status,
                             cover: this.adminStoreForm.cover || null,
                             coverFit: this.adminStoreForm.coverFit || 'contain',

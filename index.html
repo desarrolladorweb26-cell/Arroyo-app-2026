@@ -186,11 +186,14 @@
                 <div class="mb-8" x-show="activeAds().length > 0">
                     <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                         <template x-for="ad in activeAds()" :key="ad.id">
-                            <a :href="ad.link || '#'" target="_blank" class="block rounded-2xl overflow-hidden shadow-sm hover:shadow-xl transition group relative">
-                                <img :src="ad.image" onerror="this.src='https://placehold.co/800x200/1e293b/ffffff?text=Publicidad'" class="w-full h-32 md:h-40 object-cover group-hover:scale-105 transition duration-500" :alt="ad.title">
-                                <div class="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent"></div>
-                                <span class="absolute bottom-3 left-4 text-white font-bold text-sm drop-shadow-md" x-text="ad.title"></span>
-                                <span class="absolute top-3 right-3 bg-white/90 text-[11px] font-bold px-2 py-0.5 rounded text-gray-700 shadow">Publicidad</span>
+                            <a :href="ad.link || '#'" target="_blank" class="block rounded-2xl overflow-hidden shadow-sm hover:shadow-xl transition group relative h-40 sm:h-48 md:h-52 bg-gray-900 border border-gray-200/60">
+                                <!-- Fondo difuminado para rellenar el marco sin recortar -->
+                                <img :src="ad.image" onerror="this.style.display='none'" class="absolute inset-0 w-full h-full object-cover blur-md scale-110 opacity-55 pointer-events-none" alt="">
+                                <!-- Imagen completa adaptada a los píxeles del marco -->
+                                <img :src="ad.image" onerror="this.src='https://placehold.co/800x250/1e293b/ffffff?text=Publicidad'" class="relative z-[1] w-full h-full object-contain group-hover:scale-[1.02] transition duration-500" :alt="ad.title">
+                                <div class="absolute inset-x-0 bottom-0 h-16 z-[2] bg-gradient-to-t from-black/70 to-transparent pointer-events-none"></div>
+                                <span class="absolute bottom-2.5 left-4 z-[3] text-white font-bold text-sm drop-shadow-md" x-text="ad.title"></span>
+                                <span class="absolute top-2.5 right-2.5 z-[3] bg-white/90 text-[10px] font-bold px-2 py-0.5 rounded text-gray-700 shadow">Publicidad</span>
                             </a>
                         </template>
                     </div>
@@ -327,21 +330,19 @@
         <section x-show="currentView === 'storefront' && currentStoreView" x-transition.opacity>
             <template x-if="currentStoreView">
                 <div>
-                    <!-- Cabecera de la Tienda -->
-                    <div class="relative bg-gradient-to-r from-gray-900 via-brand-900 to-gray-900 text-white py-10 px-4 overflow-hidden">
-                        <template x-if="currentStoreView.cover">
-                            <div class="absolute inset-0">
-                                <img x-show="(currentStoreView.coverFit || 'contain') === 'contain'" :src="currentStoreView.cover" class="absolute inset-0 w-full h-full object-cover blur-md scale-110 opacity-45 pointer-events-none" alt="">
-                                <img :src="currentStoreView.cover"
-                                     :class="(currentStoreView.coverFit || 'contain') === 'contain' ? 'relative z-[1] w-full h-full object-contain opacity-90' : 'w-full h-full object-cover opacity-75'"
-                                     :style="(currentStoreView.coverFit || 'contain') === 'cover' ? `object-position: ${currentStoreView.coverPosX ?? 50}% ${currentStoreView.coverPosY ?? 50}%` : ''"
-                                     alt="">
-                            </div>
-                        </template>
-                        <div class="absolute inset-0 z-[2] bg-gradient-to-t from-black/80 via-black/45 to-black/30"></div>
+                    <!-- Portada completa de la Tienda (sin recortes ni texto encima) -->
+                    <div x-show="currentStoreView.cover" class="relative w-full h-48 sm:h-64 md:h-72 bg-gray-900 overflow-hidden border-b border-gray-800">
+                        <img x-show="(currentStoreView.coverFit || 'contain') === 'contain'" :src="currentStoreView.cover" class="absolute inset-0 w-full h-full object-cover blur-md scale-110 opacity-55 pointer-events-none" alt="">
+                        <img :src="currentStoreView.cover"
+                             :class="(currentStoreView.coverFit || 'contain') === 'contain' ? 'relative z-[1] w-full h-full object-contain' : 'w-full h-full object-cover'"
+                             :style="(currentStoreView.coverFit || 'contain') === 'cover' ? `object-position: ${currentStoreView.coverPosX ?? 50}% ${currentStoreView.coverPosY ?? 50}%` : ''"
+                             :alt="currentStoreView.name">
+                    </div>
 
+                    <!-- Cabecera con datos de la Tienda -->
+                    <div class="relative bg-gradient-to-r from-gray-900 via-brand-900 to-gray-900 text-white py-6 sm:py-8 px-4">
                         <div class="max-w-5xl mx-auto relative z-10 flex flex-col md:flex-row items-center md:items-start space-y-4 md:space-y-0 md:space-x-6 text-center md:text-left">
-                            <img :src="currentStoreView.logo || 'https://placehold.co/150x150/16a34a/ffffff?text='+encodeURIComponent(currentStoreView.name.charAt(0))" class="w-24 h-24 rounded-2xl shadow-xl border-4 border-white/20 object-cover bg-white">
+                            <img :src="currentStoreView.logo || 'https://placehold.co/150x150/16a34a/ffffff?text='+encodeURIComponent(currentStoreView.name.charAt(0))" :class="currentStoreView.cover ? '-mt-14 sm:-mt-16' : ''" class="w-24 h-24 rounded-2xl shadow-xl border-4 border-white object-cover bg-white relative z-20">
                             <div class="flex-1">
                                 <div class="flex flex-wrap items-center justify-center md:justify-start gap-2 mb-1">
                                     <h1 class="text-3xl font-extrabold drop-shadow" x-text="currentStoreView.name"></h1>
@@ -2125,8 +2126,8 @@
                 handleImageUpload(event, target) {
                     const file = event.target.files[0];
                     if (!file) return;
-                    const isCover = target === 'registerCover' || target === 'merchantCover' || target === 'adminCover';
-                    const maxDim = isCover ? 1400 : 800;
+                    const isHighRes = target === 'registerCover' || target === 'merchantCover' || target === 'adminCover' || target === 'adImage';
+                    const maxDim = isHighRes ? 1400 : 800;
 
                     const reader = new FileReader();
                     reader.onload = (e) => {
@@ -2150,7 +2151,7 @@
                             ctx.imageSmoothingQuality = 'high';
                             ctx.drawImage(img, 0, 0, width, height);
 
-                            let quality = isCover ? 0.88 : 0.82;
+                            let quality = isHighRes ? 0.88 : 0.82;
                             let dataUrl = canvas.toDataURL('image/jpeg', quality);
                             while (dataUrl.length > 650000 && quality > 0.45) {
                                 quality -= 0.1;

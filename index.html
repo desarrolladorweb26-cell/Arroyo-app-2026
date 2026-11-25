@@ -792,6 +792,74 @@
                             <i class="fa-solid fa-gear w-5"></i><span>Configuración</span>
                         </button>
                     </div>
+                </aside>
+
+                <!-- Contenido Principal Admin -->
+                <div class="flex-1 min-w-0">
+                    <!-- PESTAÑA: Comercios -->
+                    <div x-show="adminTab === 'stores'" class="bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
+                        <div class="flex flex-wrap justify-between items-center gap-3 mb-6">
+                            <div>
+                                <h2 class="text-xl font-bold text-gray-900">Comercios Registrados</h2>
+                                <p class="text-xs text-gray-500 mt-0.5">Gestioná vencimientos, portadas y claves de acceso de cada local.</p>
+                            </div>
+                            <span class="bg-brand-50 text-brand-700 text-xs font-extrabold px-3 py-1.5 rounded-full" x-text="stores.length + ' comercios'"></span>
+                        </div>
+
+                        <div class="space-y-4">
+                            <template x-for="store in stores" :key="store.id">
+                                <div class="p-4 border border-gray-200/80 rounded-2xl hover:border-brand-200 transition bg-gray-50/40">
+                                    <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
+                                        <div class="flex items-start space-x-3.5 min-w-0">
+                                            <img :src="store.logo || 'https://placehold.co/100x100/16a34a/ffffff?text='+encodeURIComponent(store.name.charAt(0))" class="w-12 h-12 rounded-xl object-cover border border-gray-200 flex-shrink-0 bg-white">
+                                            <div class="min-w-0 flex-1">
+                                                <div class="flex flex-wrap items-center gap-2">
+                                                    <h3 class="font-bold text-gray-900 text-base truncate" x-text="store.name"></h3>
+                                                    <span class="text-[11px] font-bold px-2 py-0.5 rounded-full" :class="store.status === 'suspended' ? 'bg-rose-100 text-rose-700' : 'bg-emerald-100 text-emerald-700'" x-text="store.status === 'suspended' ? 'Suspendido' : 'Activo'"></span>
+                                                    <span class="text-[11px] font-bold px-2 py-0.5 rounded-full" :class="getExpirationInfo(store).badgeClass" x-text="getExpirationInfo(store).label"></span>
+                                                </div>
+                                                <p class="text-xs text-gray-500 mt-0.5">
+                                                    <span x-text="store.rubro"></span> •
+                                                    <span><i class="fa-regular fa-eye mr-0.5"></i><span x-text="store.views || 0"></span> visitas</span> •
+                                                    <span><i class="fa-brands fa-whatsapp mr-0.5 text-green-600"></i><span x-text="store.ordersCount || 0"></span> pedidos</span>
+                                                </p>
+
+                                                <!-- Credenciales visibles con botón copiar -->
+                                                <div class="mt-2.5 inline-flex flex-wrap items-center gap-2 bg-amber-50 border border-amber-200/80 rounded-xl px-3 py-1.5 text-xs">
+                                                    <span class="text-amber-900"><strong>Usuario:</strong> <span class="font-mono" x-text="store.email || 'Sin email'"></span></span>
+                                                    <span class="text-amber-300">|</span>
+                                                    <span class="text-amber-900"><strong>Clave:</strong> <span class="font-mono" x-text="store.password || 'Sin clave'"></span></span>
+                                                    <button type="button" @click="copyStoreCredentials(store)" class="ml-1 bg-amber-200/80 hover:bg-amber-300 text-amber-900 font-bold px-2 py-0.5 rounded-lg text-[11px] transition">
+                                                        <i class="fa-regular fa-copy mr-1"></i>Copiar
+                                                    </button>
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <div class="flex flex-wrap items-center gap-2 flex-shrink-0 justify-end">
+                                            <a :href="getRenewalWhatsAppUrl(store)" target="_blank" class="px-3 py-2 rounded-xl bg-green-50 text-green-700 hover:bg-green-100 text-xs font-bold transition inline-flex items-center space-x-1.5" title="Enviar recordatorio de renovación por WhatsApp">
+                                                <i class="fa-brands fa-whatsapp text-sm"></i>
+                                                <span>Renovar</span>
+                                            </a>
+                                            <button type="button" @click="openAdminEditStore(store)" class="px-3 py-2 rounded-xl bg-blue-50 text-blue-700 hover:bg-blue-100 text-xs font-bold transition inline-flex items-center space-x-1.5" title="Editar comercio y clave">
+                                                <i class="fa-solid fa-pen"></i>
+                                                <span>Editar</span>
+                                            </button>
+                                            <button type="button" @click="deleteStore(store.id)" class="px-3 py-2 rounded-xl bg-rose-50 text-rose-600 hover:bg-rose-100 text-xs font-bold transition" title="Eliminar comercio">
+                                                <i class="fa-solid fa-trash"></i>
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </template>
+
+                            <div x-show="stores.length === 0" class="text-center py-12 bg-gray-50 rounded-2xl border border-dashed border-gray-200">
+                                <i class="fa-solid fa-store-slash text-3xl text-gray-300 mb-2"></i>
+                                <p class="text-sm font-semibold text-gray-500">Todavía no hay comercios registrados.</p>
+                            </div>
+                        </div>
+                    </div>
+
                     <!-- PESTAÑA: Ofertas -->
                     <div x-show="adminTab === 'offers'" class="bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
                         <div class="flex flex-wrap justify-between items-center gap-3 mb-6">
@@ -1184,6 +1252,98 @@
                                 <input type="tel" x-model="adminStoreForm.waPrefix" @input="adminStoreForm.waPrefix = adminStoreForm.waPrefix.replace(/\D/g, '').slice(0, 4)" required class="w-12 px-1.5 py-2 bg-white text-brand-700 text-xs font-extrabold text-center outline-none" placeholder="3402" title="Escribí el prefijo">
                                 <button type="button" @click="togglePrefixPicker('admin')" class="px-1.5 py-2 text-gray-400 hover:text-brand-600 hover:bg-brand-50 transition" title="Buscar ciudad">
                                     <i class="fa-solid fa-chevron-down text-[10px]"></i>
+                                </button>
+                            </div>
+                            <input type="tel" x-model="adminStoreForm.waLocal" required class="w-full px-2.5 py-2 bg-white outline-none text-sm" placeholder="553700">
+                        </div>
+                        <!-- Buscador de Prefijo Nacional -->
+                        <div x-show="prefixPickerOpen === 'admin'" @click.away="prefixPickerOpen = null" class="absolute left-0 right-0 mt-1 bg-white border border-gray-200 rounded-xl shadow-xl z-50 p-2">
+                            <div class="relative mb-2">
+                                <i class="fa-solid fa-magnifying-glass absolute left-2.5 top-1/2 -translate-y-1/2 text-gray-400 text-xs"></i>
+                                <input type="text" x-model="prefixSearch" class="w-full pl-8 pr-3 py-1.5 rounded-lg border border-gray-200 text-xs outline-none focus:ring-2 focus:ring-brand-500" placeholder="Buscar ciudad o prefijo...">
+                            </div>
+                            <div class="max-h-40 overflow-y-auto divide-y divide-gray-50 text-xs">
+                                <template x-for="p in filteredPrefixes()" :key="p.code">
+                                    <button type="button" @click="selectPrefix('adminStoreForm', p.code)" class="w-full text-left px-2.5 py-2 hover:bg-brand-50 rounded-lg flex items-center justify-between transition">
+                                        <span class="text-gray-700 truncate pr-2" x-text="p.label"></span>
+                                        <span class="font-extrabold text-brand-700 flex-shrink-0" x-text="p.code"></span>
+                                    </button>
+                                </template>
+                                <button type="button" x-show="prefixSearch.replace(/\D/g, '').length >= 2 && filteredPrefixes().length === 0" @click="selectPrefix('adminStoreForm', prefixSearch.replace(/\D/g, ''))" class="w-full text-left px-2.5 py-2 bg-brand-50 text-brand-700 font-bold rounded-lg">
+                                    Usar prefijo <span x-text="prefixSearch.replace(/\D/g, '')"></span>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Acceso del Comercio (Usuario y Contraseña) -->
+                <div class="bg-amber-50/80 p-4 rounded-2xl border border-amber-200 space-y-3">
+                    <div class="flex items-center justify-between">
+                        <p class="text-xs font-bold text-amber-900 uppercase"><i class="fa-solid fa-key mr-1 text-amber-600"></i> Acceso del Comercio (Usuario y Contraseña)</p>
+                        <button type="button" @click="showAdminStorePass = !showAdminStorePass" class="text-[11px] font-bold text-amber-800 hover:underline" x-text="showAdminStorePass ? 'Ocultar clave' : 'Ver clave'"></button>
+                    </div>
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                        <div>
+                            <label class="block text-[11px] font-semibold text-gray-600 mb-1">Email de Acceso *</label>
+                            <input type="email" x-model="adminStoreForm.email" required class="w-full px-3 py-2 rounded-xl border border-amber-200 text-sm bg-white">
+                        </div>
+                        <div>
+                            <label class="block text-[11px] font-semibold text-gray-600 mb-1">Contraseña *</label>
+                            <input :type="showAdminStorePass ? 'text' : 'password'" x-model="adminStoreForm.password" required class="w-full px-3 py-2 rounded-xl border border-amber-200 text-sm bg-white font-mono">
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Estado y Vencimiento -->
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    <div>
+                        <label class="block text-xs font-semibold text-gray-600 uppercase mb-1">Estado</label>
+                        <select x-model="adminStoreForm.status" class="w-full px-3.5 py-2 rounded-xl border border-gray-300 text-sm bg-white">
+                            <option value="active">Activo (Visible)</option>
+                            <option value="suspended">Suspendido (Oculto)</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold text-gray-600 uppercase mb-1">Fecha de Vencimiento</label>
+                        <input type="date" x-model="adminStoreForm.expiresAt" class="w-full px-3.5 py-2 rounded-xl border border-gray-300 text-sm bg-white">
+                    </div>
+                </div>
+
+                <div class="flex flex-wrap gap-2">
+                    <button type="button" @click="extendStoreExpiration(30)" class="text-xs font-bold bg-emerald-50 hover:bg-emerald-100 text-emerald-700 border border-emerald-200 px-3 py-1.5 rounded-xl transition">+ 30 días (Mes)</button>
+                    <button type="button" @click="extendStoreExpiration(365)" class="text-xs font-bold bg-brand-50 hover:bg-brand-100 text-brand-700 border border-brand-200 px-3 py-1.5 rounded-xl transition">+ 1 Año (Renovación)</button>
+                </div>
+
+                <!-- Mercado Pago -->
+                <div class="bg-sky-50/70 p-3.5 rounded-2xl border border-sky-100 space-y-2.5">
+                    <p class="text-xs font-bold text-sky-900 uppercase"><i class="fa-solid fa-wallet mr-1 text-sky-600"></i> Mercado Pago</p>
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+                        <input type="text" x-model="adminStoreForm.mpAlias" class="w-full px-3 py-2 rounded-xl border border-sky-200 text-sm bg-white" placeholder="Alias o CVU">
+                        <input type="url" x-model="adminStoreForm.mpLink" class="w-full px-3 py-2 rounded-xl border border-sky-200 text-sm bg-white" placeholder="Link de pago">
+                    </div>
+                </div>
+
+                <!-- Portada desde cPanel -->
+                <div class="bg-gray-50 p-3.5 rounded-2xl border border-gray-200 space-y-2">
+                    <label class="block text-xs font-bold text-gray-700 uppercase">Foto de Portada</label>
+                    <img x-show="adminStoreForm.cover" :src="adminStoreForm.cover" class="w-full h-32 object-contain bg-gray-900 rounded-xl border">
+                    <div class="flex items-center gap-2">
+                        <label class="bg-white hover:bg-gray-100 text-gray-700 border border-gray-300 text-xs font-bold px-3 py-1.5 rounded-xl cursor-pointer">
+                            <i class="fa-solid fa-upload mr-1 text-brand-600"></i> <span x-text="adminStoreForm.cover ? 'Cambiar portada' : 'Subir portada'"></span>
+                            <input type="file" accept="image/*" @change="handleImageUpload($event, 'adminCover')" class="hidden">
+                        </label>
+                        <button type="button" x-show="adminStoreForm.cover" @click="adminStoreForm.cover = ''" class="text-xs text-rose-600 font-semibold hover:underline">Quitar</button>
+                    </div>
+                </div>
+
+                <div class="pt-2">
+                    <button type="submit" class="w-full bg-brand-600 hover:bg-brand-700 text-white font-bold py-3 rounded-xl shadow-lg transition">Guardar Cambios</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
     <!-- ================= MODAL ADMIN: CREAR / EDITAR OFERTA ================= -->
     <div x-show="showAdminOfferModal" class="fixed inset-0 bg-black/60 backdrop-blur-sm z-[65] flex items-center justify-center p-4" x-transition.opacity style="display: none;">
         <div @click.away="showAdminOfferModal = false" class="bg-white rounded-3xl max-w-lg w-full p-6 sm:p-7 shadow-2xl relative max-h-[90vh] overflow-y-auto">

@@ -234,26 +234,34 @@
                 </div>
 
                 <!-- Sección Destacada: Ofertas de Hoy -->
-                <div x-show="!searchQuery.trim() && featuredOffers().length > 0" class="mb-10">
-                    <div class="flex items-center justify-between mb-4">
-                        <h2 class="text-xl font-extrabold text-gray-900 flex items-center space-x-2">
-                            <span class="text-rose-500"><i class="fa-solid fa-fire"></i></span>
-                            <span>Ofertas de Hoy en <span x-text="platformSettings.city"></span></span>
-                        </h2>
+                <div x-show="!searchQuery.trim() && featuredOffers().length > 0" class="mb-10 relative z-10 bg-gradient-to-br from-rose-50 via-orange-50/70 to-amber-50 border border-rose-200/80 rounded-3xl p-5 sm:p-6 shadow-sm">
+                    <div class="flex flex-wrap items-center justify-between gap-2 mb-5">
+                        <div class="flex items-center space-x-2.5">
+                            <span class="w-9 h-9 rounded-xl bg-rose-600 text-white flex items-center justify-center shadow-md shadow-rose-500/30">
+                                <i class="fa-solid fa-fire"></i>
+                            </span>
+                            <div>
+                                <h2 class="text-lg sm:text-xl font-black text-gray-900 leading-tight">
+                                    Ofertas de Hoy en <span x-text="platformSettings.city"></span>
+                                </h2>
+                                <p class="text-xs text-rose-700 font-medium">Promociones activas de los comercios locales</p>
+                            </div>
+                        </div>
+                        <span class="bg-rose-600 text-white text-xs font-extrabold px-3 py-1 rounded-full shadow-sm" x-text="featuredOffers().length + (featuredOffers().length === 1 ? ' oferta activa' : ' ofertas activas')"></span>
                     </div>
-                    <div class="flex space-x-4 overflow-x-auto pb-3 no-scrollbar">
+                    <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
                         <template x-for="offer in featuredOffers()" :key="offer.product.id">
-                            <div @click="openStorefront(offer.store)" class="min-w-[230px] max-w-[230px] bg-white rounded-2xl border border-rose-100 shadow-sm hover:shadow-lg transition overflow-hidden cursor-pointer flex-shrink-0 group">
-                                <div class="h-32 bg-gray-50 relative overflow-hidden">
-                                    <img :src="offer.product.image || 'https://placehold.co/300x200/f8fafc/94a3b8?text=Oferta'" class="w-full h-full object-cover group-hover:scale-105 transition duration-500">
-                                    <span class="absolute top-2 left-2 bg-rose-600 text-white text-[10px] font-extrabold px-2 py-0.5 rounded-full shadow">
+                            <div @click="openStorefront(offer.store)" class="bg-white rounded-2xl border border-rose-100 shadow-sm hover:shadow-lg transition overflow-hidden cursor-pointer group flex flex-col">
+                                <div class="h-36 bg-gray-50 relative overflow-hidden">
+                                    <img :src="offer.product.image || 'https://placehold.co/300x200/f8fafc/94a3b8?text=Oferta'" onerror="this.src='https://placehold.co/300x200/f8fafc/94a3b8?text=Oferta'" class="w-full h-full object-cover group-hover:scale-105 transition duration-500">
+                                    <span class="absolute top-2.5 left-2.5 bg-rose-600 text-white text-[11px] font-extrabold px-2.5 py-0.5 rounded-full shadow">
                                         -<span x-text="Math.round((1 - (Number(offer.product.price) / Number(offer.product.oldPrice))) * 100)"></span>% OFF
                                     </span>
                                 </div>
-                                <div class="p-3.5">
+                                <div class="p-3.5 flex-1 flex flex-col">
                                     <p class="text-[11px] font-bold text-brand-600 truncate" x-text="offer.store.name"></p>
-                                    <h4 class="font-bold text-sm text-gray-900 truncate mb-1" x-text="offer.product.name"></h4>
-                                    <div class="flex items-baseline space-x-2">
+                                    <h4 class="font-bold text-sm text-gray-900 line-clamp-1 mb-1" x-text="offer.product.name"></h4>
+                                    <div class="flex items-baseline space-x-2 mt-auto pt-1">
                                         <span class="text-base font-extrabold text-rose-600" x-text="formatPrice(offer.product.price)"></span>
                                         <span class="text-xs text-gray-400 line-through" x-text="formatPrice(offer.product.oldPrice)"></span>
                                     </div>
@@ -647,6 +655,9 @@
                             <button @click="openStorefront(currentSession)" class="flex-1 md:flex-none bg-gray-100 hover:bg-gray-200 text-gray-700 font-semibold py-2 px-4 rounded-xl transition flex items-center justify-center space-x-2 text-sm">
                                 <i class="fa-regular fa-eye"></i> <span>Ver mi tienda</span>
                             </button>
+                            <button @click="openOfferModalForMerchant()" class="flex-1 md:flex-none bg-rose-600 hover:bg-rose-700 text-white font-bold py-2 px-4 rounded-xl shadow transition flex items-center justify-center space-x-2 text-sm">
+                                <i class="fa-solid fa-fire"></i> <span>Crear Oferta</span>
+                            </button>
                             <button @click="openProductModal()" class="flex-1 md:flex-none bg-brand-600 hover:bg-brand-700 text-white font-bold py-2 px-4 rounded-xl shadow transition flex items-center justify-center space-x-2 text-sm">
                                 <i class="fa-solid fa-plus"></i> <span>Nuevo Producto</span>
                             </button>
@@ -731,6 +742,9 @@
                                                 </button>
                                             </td>
                                             <td class="p-4 text-right space-x-2 whitespace-nowrap">
+                                                <button @click="editProduct(product)" :class="(product.oldPrice && Number(product.oldPrice) > Number(product.price)) ? 'bg-rose-100 text-rose-600 hover:bg-rose-200' : 'bg-amber-50 text-amber-600 hover:bg-amber-100'" class="w-8 h-8 rounded-lg transition inline-flex items-center justify-center" title="Poner o editar oferta">
+                                                    <i class="fa-solid fa-fire"></i>
+                                                </button>
                                                 <button @click="editProduct(product)" class="w-8 h-8 rounded-lg bg-blue-50 text-blue-600 hover:bg-blue-100 transition inline-flex items-center justify-center" title="Editar">
                                                     <i class="fa-solid fa-pen"></i>
                                                 </button>
@@ -764,6 +778,10 @@
                         <button @click="adminTab = 'stores'" :class="adminTab === 'stores' ? 'bg-brand-600 text-white font-bold shadow' : 'text-gray-700 hover:bg-gray-100 font-medium'" class="w-full text-left px-4 py-2.5 rounded-xl text-sm transition flex items-center space-x-2.5">
                             <i class="fa-solid fa-store w-5"></i><span>Comercios</span>
                         </button>
+                        <button @click="adminTab = 'offers'" :class="adminTab === 'offers' ? 'bg-rose-600 text-white font-bold shadow' : 'text-gray-700 hover:bg-rose-50 font-medium'" class="w-full text-left px-4 py-2.5 rounded-xl text-sm transition flex items-center justify-between">
+                            <span class="flex items-center space-x-2.5"><i class="fa-solid fa-fire w-5" :class="adminTab === 'offers' ? 'text-white' : 'text-rose-500'"></i><span>Ofertas</span></span>
+                            <span x-show="featuredOffers().length > 0" :class="adminTab === 'offers' ? 'bg-white/20 text-white' : 'bg-rose-100 text-rose-700'" class="text-[11px] font-extrabold px-2 py-0.5 rounded-full" x-text="featuredOffers().length"></span>
+                        </button>
                         <button @click="adminTab = 'rubros'" :class="adminTab === 'rubros' ? 'bg-brand-600 text-white font-bold shadow' : 'text-gray-700 hover:bg-gray-100 font-medium'" class="w-full text-left px-4 py-2.5 rounded-xl text-sm transition flex items-center space-x-2.5">
                             <i class="fa-solid fa-tags w-5"></i><span>Rubros</span>
                         </button>
@@ -774,49 +792,57 @@
                             <i class="fa-solid fa-gear w-5"></i><span>Configuración</span>
                         </button>
                     </div>
-                </aside>
-
-                <!-- Panel Derecho Admin -->
-                <div class="flex-1">
-                    <!-- PESTAÑA: Comercios -->
-                    <div x-show="adminTab === 'stores'" class="bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
-                        <div class="flex justify-between items-center mb-6">
-                            <h2 class="text-xl font-bold text-gray-900">Gestión de Comercios y Vencimientos</h2>
-                            <span class="text-xs font-bold bg-gray-100 text-gray-600 px-3 py-1 rounded-full" x-text="stores.length + ' comercios'"></span>
+                    <!-- PESTAÑA: Ofertas -->
+                    <div x-show="adminTab === 'offers'" class="bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
+                        <div class="flex flex-wrap justify-between items-center gap-3 mb-6">
+                            <div>
+                                <h2 class="text-xl font-bold text-gray-900 flex items-center space-x-2">
+                                    <i class="fa-solid fa-fire text-rose-500"></i>
+                                    <span>Gestión de Ofertas de Hoy</span>
+                                </h2>
+                                <p class="text-xs text-gray-500 mt-0.5">Creá o editá ofertas de cualquier comercio para que aparezcan destacadas en la portada.</p>
+                            </div>
+                            <button type="button" @click="openAdminOfferModal()" class="bg-rose-600 hover:bg-rose-700 text-white font-bold px-4 py-2.5 rounded-xl text-sm shadow transition flex items-center space-x-2">
+                                <i class="fa-solid fa-plus"></i>
+                                <span>Nueva Oferta</span>
+                            </button>
                         </div>
-                        <div class="space-y-4">
-                            <template x-for="store in stores" :key="store.id">
-                                <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 p-4 border border-gray-100 rounded-xl hover:bg-gray-50 transition">
-                                    <div class="flex items-center space-x-4 min-w-0">
-                                        <div class="w-11 h-11 bg-brand-100 text-brand-700 rounded-xl flex items-center justify-center font-bold flex-shrink-0">
-                                            <span x-text="store.name.charAt(0)"></span>
-                                        </div>
+
+                        <div class="space-y-3">
+                            <template x-for="offer in featuredOffers()" :key="offer.product.id">
+                                <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 p-4 border border-rose-100 bg-rose-50/30 rounded-xl hover:bg-rose-50/60 transition">
+                                    <div class="flex items-center space-x-3.5 min-w-0">
+                                        <img :src="offer.product.image || 'https://placehold.co/100x100/f8fafc/94a3b8?text=Oferta'" class="w-14 h-14 rounded-xl object-cover border border-gray-200 flex-shrink-0">
                                         <div class="min-w-0">
                                             <div class="flex flex-wrap items-center gap-2">
-                                                <h4 class="font-bold text-gray-900 text-sm truncate" x-text="store.name"></h4>
-                                                <span class="px-2 py-0.5 text-[11px] font-bold rounded-full" :class="getExpirationInfo(store).badgeClass" x-text="getExpirationInfo(store).label"></span>
+                                                <h4 class="font-bold text-sm text-gray-900 truncate" x-text="offer.product.name"></h4>
+                                                <span class="bg-rose-600 text-white text-[10px] font-extrabold px-2 py-0.5 rounded-full">
+                                                    -<span x-text="Math.round((1 - (Number(offer.product.price) / Number(offer.product.oldPrice))) * 100)"></span>% OFF
+                                                </span>
                                             </div>
-                                            <p class="text-xs text-gray-500 truncate"><span x-text="store.email"></span> • <span x-text="store.rubro"></span></p>
-                                            <p class="text-[11px] text-gray-400 mt-0.5">
-                                                <i class="fa-regular fa-eye mr-1"></i><span x-text="store.views || 0"></span> visitas •
-                                                <i class="fa-brands fa-whatsapp ml-1 mr-1"></i><span x-text="store.ordersCount || 0"></span> pedidos
-                                            </p>
+                                            <p class="text-xs font-semibold text-brand-700 truncate" x-text="offer.store.name"></p>
+                                            <div class="flex items-center space-x-2 mt-0.5">
+                                                <span class="text-sm font-extrabold text-rose-600" x-text="formatPrice(offer.product.price)"></span>
+                                                <span class="text-xs text-gray-400 line-through" x-text="formatPrice(offer.product.oldPrice)"></span>
+                                            </div>
                                         </div>
                                     </div>
                                     <div class="flex items-center space-x-2 flex-shrink-0 justify-end">
-                                        <span class="px-2 py-1 text-xs font-bold rounded" :class="store.status === 'active' ? 'bg-green-100 text-green-700' : 'bg-orange-100 text-orange-700'" x-text="store.status === 'active' ? 'Activo' : 'Suspendido'"></span>
-                                        <a :href="getRenewalWhatsAppUrl(store)" target="_blank" class="text-green-600 hover:text-green-700 p-2 rounded-lg hover:bg-green-50 transition" title="Enviar recordatorio de renovación por WhatsApp">
-                                            <i class="fa-brands fa-whatsapp text-lg"></i>
-                                        </a>
-                                        <button @click="openAdminEditStore(store)" class="text-blue-500 hover:text-blue-700 p-2 rounded-lg hover:bg-blue-50 transition" title="Editar datos y vencimiento">
-                                            <i class="fa-solid fa-pen"></i>
+                                        <button type="button" @click="openAdminOfferModal(offer.product)" class="px-3 py-1.5 rounded-lg bg-blue-50 text-blue-700 hover:bg-blue-100 text-xs font-bold transition">
+                                            <i class="fa-solid fa-pen mr-1"></i> Editar
                                         </button>
-                                        <button @click="deleteStore(store.id)" class="text-rose-500 hover:text-rose-700 p-2 rounded-lg hover:bg-rose-50 transition" title="Dar de baja">
-                                            <i class="fa-solid fa-trash"></i>
+                                        <button type="button" @click="removeOfferFromProduct(offer.product)" class="px-3 py-1.5 rounded-lg bg-amber-50 text-amber-700 hover:bg-amber-100 text-xs font-bold transition" title="Quitar de Ofertas (deja el producto en el catálogo)">
+                                            <i class="fa-solid fa-tag mr-1"></i> Quitar oferta
                                         </button>
                                     </div>
                                 </div>
                             </template>
+
+                            <div x-show="featuredOffers().length === 0" class="text-center py-12 bg-gray-50 rounded-2xl border border-dashed border-gray-200">
+                                <i class="fa-solid fa-fire text-3xl text-rose-300 mb-2"></i>
+                                <p class="text-sm font-semibold text-gray-600">Todavía no hay ofertas activas en la portada.</p>
+                                <p class="text-xs text-gray-400 mt-1">Tocá "Nueva Oferta" para destacar un producto de cualquier comercio.</p>
+                            </div>
                         </div>
                     </div>
 
@@ -938,15 +964,24 @@
                     <input type="text" x-model="productForm.name" required class="w-full px-4 py-2.5 rounded-xl border border-gray-300 focus:ring-2 focus:ring-brand-500 outline-none text-sm bg-gray-50">
                 </div>
 
-                <div class="grid grid-cols-2 gap-4">
-                    <div>
-                        <label class="block text-xs font-semibold text-gray-600 uppercase mb-1">Precio Actual ($) *</label>
-                        <input type="number" step="0.01" x-model="productForm.price" required class="w-full px-4 py-2.5 rounded-xl border border-gray-300 focus:ring-2 focus:ring-brand-500 outline-none text-sm bg-gray-50">
+                <div class="bg-rose-50/70 border border-rose-200 rounded-2xl p-3.5 space-y-2.5">
+                    <div class="flex items-center justify-between">
+                        <p class="text-xs font-bold text-rose-800 uppercase"><i class="fa-solid fa-fire mr-1 text-rose-600"></i> Precio y Oferta en Portada</p>
+                        <span x-show="productForm.oldPrice && Number(productForm.oldPrice) > Number(productForm.price) && Number(productForm.price) > 0" class="bg-rose-600 text-white text-[10px] font-extrabold px-2 py-0.5 rounded-full">
+                            -<span x-text="Math.round((1 - (Number(productForm.price) / Number(productForm.oldPrice))) * 100)"></span>% OFF
+                        </span>
                     </div>
-                    <div>
-                        <label class="block text-xs font-semibold text-rose-600 uppercase mb-1">Precio Anterior <span class="font-normal text-gray-400">(Oferta)</span></label>
-                        <input type="number" step="0.01" x-model="productForm.oldPrice" class="w-full px-4 py-2.5 rounded-xl border border-gray-300 focus:ring-2 focus:ring-rose-500 outline-none text-sm bg-gray-50" placeholder="Opcional">
+                    <div class="grid grid-cols-2 gap-3">
+                        <div>
+                            <label class="block text-xs font-semibold text-gray-700 mb-1">Precio Actual ($) *</label>
+                            <input type="number" step="0.01" x-model="productForm.price" required class="w-full px-3.5 py-2 rounded-xl border border-gray-300 focus:ring-2 focus:ring-brand-500 outline-none text-sm bg-white">
+                        </div>
+                        <div>
+                            <label class="block text-xs font-semibold text-rose-700 mb-1">Precio Anterior ($) <span class="font-normal text-gray-500">(Opcional)</span></label>
+                            <input type="number" step="0.01" x-model="productForm.oldPrice" class="w-full px-3.5 py-2 rounded-xl border border-rose-300 focus:ring-2 focus:ring-rose-500 outline-none text-sm bg-white" placeholder="Mayor al actual">
+                        </div>
                     </div>
+                    <p class="text-[11px] text-rose-700">Si ponés un <strong>Precio Anterior</strong> más alto que el actual, el producto aparece automáticamente en <strong>🔥 Ofertas de Hoy</strong> en la portada.</p>
                 </div>
 
                 <div>
@@ -1149,68 +1184,88 @@
                                 <input type="tel" x-model="adminStoreForm.waPrefix" @input="adminStoreForm.waPrefix = adminStoreForm.waPrefix.replace(/\D/g, '').slice(0, 4)" required class="w-12 px-1.5 py-2 bg-white text-brand-700 text-xs font-extrabold text-center outline-none" placeholder="3402" title="Escribí el prefijo">
                                 <button type="button" @click="togglePrefixPicker('admin')" class="px-1.5 py-2 text-gray-400 hover:text-brand-600 hover:bg-brand-50 transition" title="Buscar ciudad">
                                     <i class="fa-solid fa-chevron-down text-[10px]"></i>
-                                </button>
-                            </div>
-                            <input type="tel" x-model="adminStoreForm.waLocal" required class="w-full px-2.5 py-2 bg-white outline-none text-sm" placeholder="553700">
-                        </div>
-                        <!-- Buscador de Prefijo Nacional -->
-                        <div x-show="prefixPickerOpen === 'admin'" @click.away="prefixPickerOpen = null" class="absolute left-0 right-0 mt-1 bg-white border border-gray-200 rounded-xl shadow-xl z-50 p-2">
-                            <div class="relative mb-2">
-                                <i class="fa-solid fa-magnifying-glass absolute left-2.5 top-1/2 -translate-y-1/2 text-gray-400 text-xs"></i>
-                                <input type="text" x-model="prefixSearch" class="w-full pl-8 pr-3 py-1.5 rounded-lg border border-gray-200 text-xs outline-none focus:ring-2 focus:ring-brand-500" placeholder="Buscar ciudad o prefijo...">
-                            </div>
-                            <div class="max-h-40 overflow-y-auto divide-y divide-gray-50 text-xs">
-                                <template x-for="p in filteredPrefixes()" :key="p.code">
-                                    <button type="button" @click="selectPrefix('adminStoreForm', p.code)" class="w-full text-left px-2.5 py-2 hover:bg-brand-50 rounded-lg flex items-center justify-between transition">
-                                        <span class="text-gray-700 truncate pr-2" x-text="p.label"></span>
-                                        <span class="font-extrabold text-brand-700 flex-shrink-0" x-text="p.code"></span>
-                                    </button>
-                                </template>
-                                <button type="button" x-show="prefixSearch.replace(/\D/g, '').length >= 2 && filteredPrefixes().length === 0" @click="selectPrefix('adminStoreForm', prefixSearch.replace(/\D/g, ''))" class="w-full text-left px-2.5 py-2 bg-brand-50 text-brand-700 font-bold rounded-lg">
-                                    Usar prefijo <span x-text="prefixSearch.replace(/\D/g, '')"></span>
-                                </button>
-                            </div>
-                        </div>
-                    </div>
+    <!-- ================= MODAL ADMIN: CREAR / EDITAR OFERTA ================= -->
+    <div x-show="showAdminOfferModal" class="fixed inset-0 bg-black/60 backdrop-blur-sm z-[65] flex items-center justify-center p-4" x-transition.opacity style="display: none;">
+        <div @click.away="showAdminOfferModal = false" class="bg-white rounded-3xl max-w-lg w-full p-6 sm:p-7 shadow-2xl relative max-h-[90vh] overflow-y-auto">
+            <button @click="showAdminOfferModal = false" class="absolute top-4 right-4 text-gray-400 hover:text-gray-700"><i class="fa-solid fa-xmark text-xl"></i></button>
+            <h3 class="text-xl font-bold text-gray-900 mb-1 flex items-center space-x-2">
+                <i class="fa-solid fa-fire text-rose-500"></i>
+                <span x-text="adminOfferForm.id ? 'Editar Oferta' : 'Crear Nueva Oferta'"></span>
+            </h3>
+            <p class="text-xs text-gray-500 mb-5">Se mostrará en la portada en "Ofertas de Hoy" y en el catálogo del comercio.</p>
+
+            <form @submit.prevent="saveAdminOffer()" class="space-y-4">
+                <div>
+                    <label class="block text-xs font-semibold text-gray-600 uppercase mb-1">Comercio *</label>
+                    <select x-model="adminOfferForm.storeId" @change="adminOfferForm.existingProductId = ''" required class="w-full px-3.5 py-2.5 rounded-xl border border-gray-300 text-sm bg-white">
+                        <option value="">Seleccioná un comercio...</option>
+                        <template x-for="s in stores" :key="s.id">
+                            <option :value="s.id" x-text="s.name"></option>
+                        </template>
+                    </select>
                 </div>
 
-                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                    <div>
-                        <label class="block text-xs font-semibold text-gray-600 uppercase mb-1">Estado</label>
-                        <select x-model="adminStoreForm.status" class="w-full px-3.5 py-2 rounded-xl border border-gray-300 text-sm bg-white">
-                            <option value="active">Activo</option>
-                            <option value="suspended">Suspendido</option>
-                        </select>
-                    </div>
-                    <div>
-                        <label class="block text-xs font-semibold text-gray-600 uppercase mb-1">Vencimiento</label>
-                        <input type="date" x-model="adminStoreForm.expiresAt" class="w-full px-3.5 py-2 rounded-xl border border-gray-300 text-sm">
-                    </div>
-                </div>
-
-                <div class="flex flex-wrap gap-2">
-                    <button type="button" @click="extendStoreExpiration(30)" class="text-xs font-bold bg-emerald-50 hover:bg-emerald-100 text-emerald-700 border border-emerald-200 px-3 py-1.5 rounded-lg transition">+ 30 días</button>
-                    <button type="button" @click="extendStoreExpiration(365)" class="text-xs font-bold bg-brand-600 hover:bg-brand-700 text-white px-3 py-1.5 rounded-lg transition">+ 1 Año (Renovado)</button>
-                </div>
-
-                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                    <input type="text" x-model="adminStoreForm.mpAlias" class="w-full px-3.5 py-2 rounded-xl border border-gray-300 text-sm" placeholder="Alias/CVU Mercado Pago">
-                    <input type="url" x-model="adminStoreForm.mpLink" class="w-full px-3.5 py-2 rounded-xl border border-gray-300 text-sm" placeholder="Link Mercado Pago">
+                <!-- Elegir producto existente del comercio (opcional al crear) -->
+                <div x-show="!adminOfferForm.id && adminOfferForm.storeId && getStoreProducts(adminOfferForm.storeId).length > 0" class="bg-gray-50 p-3 rounded-xl border border-gray-200">
+                    <label class="block text-xs font-semibold text-gray-600 mb-1">¿Querés poner en oferta un producto ya cargado?</label>
+                    <select x-model="adminOfferForm.existingProductId" @change="onAdminOfferProductSelect()" class="w-full px-3 py-2 rounded-lg border border-gray-300 text-xs bg-white">
+                        <option value="">-- Crear producto nuevo de oferta --</option>
+                        <template x-for="p in getStoreProducts(adminOfferForm.storeId)" :key="p.id">
+                            <option :value="p.id" x-text="p.name + ' (' + formatPrice(p.price) + ')'"></option>
+                        </template>
+                    </select>
                 </div>
 
                 <div>
-                    <label class="block text-xs font-semibold text-gray-600 uppercase mb-1">Portada del Comercio</label>
-                    <div class="flex items-center space-x-3">
-                        <img x-show="adminStoreForm.cover" :src="adminStoreForm.cover" class="w-20 h-12 rounded-lg object-cover border">
-                        <label class="bg-gray-100 hover:bg-gray-200 text-gray-700 text-xs font-bold px-3.5 py-2 rounded-xl cursor-pointer">
-                            <i class="fa-solid fa-upload mr-1"></i> Subir portada
-                            <input type="file" accept="image/*" @change="handleImageUpload($event, 'adminCover')" class="hidden">
-                        </label>
-                        <button type="button" x-show="adminStoreForm.cover" @click="adminStoreForm.cover = ''" class="text-xs text-rose-600 hover:underline">Quitar</button>
+                    <label class="block text-xs font-semibold text-gray-600 uppercase mb-1">Nombre del Producto en Oferta *</label>
+                    <input type="text" x-model="adminOfferForm.name" required class="w-full px-3.5 py-2.5 rounded-xl border border-gray-300 text-sm bg-gray-50" placeholder="Ej. Promo 2x1 Empanadas">
+                </div>
+
+                <div class="bg-rose-50/70 border border-rose-200 rounded-2xl p-3.5 space-y-2">
+                    <div class="flex items-center justify-between">
+                        <span class="text-xs font-bold text-rose-800 uppercase">Precios de la Oferta</span>
+                        <span x-show="Number(adminOfferForm.oldPrice) > Number(adminOfferForm.price) && Number(adminOfferForm.price) > 0" class="bg-rose-600 text-white text-[10px] font-extrabold px-2 py-0.5 rounded-full">
+                            -<span x-text="Math.round((1 - (Number(adminOfferForm.price) / Number(adminOfferForm.oldPrice))) * 100)"></span>% OFF
+                        </span>
+                    </div>
+                    <div class="grid grid-cols-2 gap-3">
+                        <div>
+                            <label class="block text-xs font-semibold text-gray-700 mb-1">Precio Anterior ($) *</label>
+                            <input type="number" step="0.01" x-model="adminOfferForm.oldPrice" required class="w-full px-3 py-2 rounded-xl border border-rose-300 text-sm bg-white" placeholder="Ej. 15000">
+                        </div>
+                        <div>
+                            <label class="block text-xs font-semibold text-rose-700 mb-1">Precio Oferta ($) *</label>
+                            <input type="number" step="0.01" x-model="adminOfferForm.price" required class="w-full px-3 py-2 rounded-xl border border-rose-300 text-sm bg-white" placeholder="Ej. 11900">
+                        </div>
                     </div>
                 </div>
 
-                <button type="submit" class="w-full bg-gray-900 hover:bg-gray-800 text-white font-bold py-3 rounded-xl shadow transition">Guardar Cambios</button>
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    <div>
+                        <label class="block text-xs font-semibold text-gray-600 uppercase mb-1">Categoría</label>
+                        <input type="text" x-model="adminOfferForm.category" required class="w-full px-3.5 py-2 rounded-xl border border-gray-300 text-sm bg-gray-50" placeholder="Ofertas">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold text-gray-600 uppercase mb-1">Foto</label>
+                        <div class="flex items-center space-x-2">
+                            <img x-show="adminOfferForm.image" :src="adminOfferForm.image" class="w-10 h-10 rounded-lg object-cover border">
+                            <label class="bg-gray-100 hover:bg-gray-200 text-gray-700 text-xs font-bold px-3 py-2 rounded-xl cursor-pointer">
+                                <i class="fa-solid fa-camera mr-1"></i> Subir
+                                <input type="file" accept="image/*" @change="handleImageUpload($event, 'adminOfferImage')" class="hidden">
+                            </label>
+                            <button type="button" x-show="adminOfferForm.image" @click="adminOfferForm.image = ''" class="text-xs text-rose-600 hover:underline">Quitar</button>
+                        </div>
+                    </div>
+                </div>
+
+                <div>
+                    <label class="block text-xs font-semibold text-gray-600 uppercase mb-1">Descripción *</label>
+                    <textarea x-model="adminOfferForm.description" rows="2" required class="w-full px-3.5 py-2 rounded-xl border border-gray-300 text-sm bg-gray-50 resize-none" placeholder="Detalles de la promoción..."></textarea>
+                </div>
+
+                <button type="submit" class="w-full bg-rose-600 hover:bg-rose-700 text-white font-bold py-3 rounded-xl shadow-lg transition">
+                    Guardar y Publicar Oferta
+                </button>
             </form>
         </div>
     </div>
@@ -1534,6 +1589,7 @@
                 showProductModal: false,
                 showMerchantProfileModal: false,
                 showAdminEditStoreModal: false,
+                showAdminOfferModal: false,
                 showCartModal: false,
                 showQrModal: false,
                 toastMessage: '',
@@ -1616,7 +1672,9 @@
                 registerForm: { name: '', rubro: '', description: '', whatsapp: '', waPrefix: '3402', waLocal: '', email: '', password: '', cover: '', coverPosX: 50, coverPosY: 50, coverFit: 'contain', mpAlias: '', mpLink: '', address: '', hours: '', instagram: '' },
                 productForm: { id: null, name: '', price: '', oldPrice: '', inStock: true, category: '', image: '', description: '' },
                 merchantProfileForm: { id: null, name: '', rubro: '', description: '', whatsapp: '', waPrefix: '3402', waLocal: '', cover: '', coverPosX: 50, coverPosY: 50, coverFit: 'contain', logo: '', mpAlias: '', mpLink: '', address: '', hours: '', instagram: '', deliveryEnabled: false, deliveryFee: 0 },
-                adminStoreForm: { id: null, name: '', email: '', whatsapp: '', waPrefix: '3402', waLocal: '', rubro: '', status: 'active', cover: '', coverPosX: 50, coverPosY: 50, coverFit: 'contain', mpAlias: '', mpLink: '', expiresAt: '' },
+                adminStoreForm: { id: null, name: '', email: '', password: '', whatsapp: '', waPrefix: '3402', waLocal: '', rubro: '', status: 'active', cover: '', coverPosX: 50, coverPosY: 50, coverFit: 'contain', mpAlias: '', mpLink: '', expiresAt: '' },
+                adminOfferForm: { id: null, storeId: '', existingProductId: '', name: '', oldPrice: '', price: '', category: 'Ofertas', description: '', image: '', inStock: true },
+                showAdminStorePass: true,
 
                 // Inicialización
                 init() {
@@ -2172,6 +2230,8 @@
                                 this.adminStoreForm.cover = dataUrl;
                             } else if (target === 'productImage') {
                                 this.productForm.image = dataUrl;
+                            } else if (target === 'adminOfferImage') {
+                                this.adminOfferForm.image = dataUrl;
                             } else if (target === 'adImage') {
                                 this.adForm.image = dataUrl;
                             }
@@ -2408,6 +2468,11 @@
                     this.showProductModal = true;
                 },
 
+                openOfferModalForMerchant() {
+                    this.productForm = { id: null, name: '', price: '', oldPrice: '', inStock: true, category: 'Ofertas', image: '', description: '' };
+                    this.showProductModal = true;
+                },
+
                 editProduct(prod) {
                     this.productForm = {
                         ...prod,
@@ -2472,11 +2537,130 @@
                 },
 
                 // Acciones del Admin (cPanel)
+                openAdminOfferModal(prod = null) {
+                    if (prod) {
+                        this.adminOfferForm = {
+                            id: prod.id,
+                            storeId: prod.storeId,
+                            existingProductId: '',
+                            name: prod.name || '',
+                            oldPrice: prod.oldPrice || '',
+                            price: prod.price || '',
+                            category: prod.category || 'Ofertas',
+                            description: prod.description || '',
+                            image: prod.image || '',
+                            inStock: prod.inStock !== false
+                        };
+                    } else {
+                        const firstStore = this.stores.find(s => s.status !== 'suspended') || this.stores[0];
+                        this.adminOfferForm = {
+                            id: null,
+                            storeId: firstStore ? firstStore.id : '',
+                            existingProductId: '',
+                            name: '',
+                            oldPrice: '',
+                            price: '',
+                            category: 'Ofertas',
+                            description: '',
+                            image: '',
+                            inStock: true
+                        };
+                    }
+                    this.showAdminOfferModal = true;
+                },
+
+                onAdminOfferProductSelect() {
+                    const pid = this.adminOfferForm.existingProductId;
+                    if (!pid) {
+                        this.adminOfferForm.name = '';
+                        this.adminOfferForm.oldPrice = '';
+                        this.adminOfferForm.price = '';
+                        this.adminOfferForm.category = 'Ofertas';
+                        this.adminOfferForm.description = '';
+                        this.adminOfferForm.image = '';
+                        return;
+                    }
+                    const prod = this.products.find(p => p.id === pid);
+                    if (!prod) return;
+                    this.adminOfferForm.name = prod.name || '';
+                    this.adminOfferForm.oldPrice = prod.oldPrice || prod.price || '';
+                    this.adminOfferForm.price = prod.price || '';
+                    this.adminOfferForm.category = prod.category || 'Ofertas';
+                    this.adminOfferForm.description = prod.description || '';
+                    this.adminOfferForm.image = prod.image || '';
+                    this.adminOfferForm.inStock = true;
+                },
+
+                async saveAdminOffer() {
+                    try {
+                        const price = Number(this.adminOfferForm.price);
+                        const oldPrice = Number(this.adminOfferForm.oldPrice);
+                        if (!this.adminOfferForm.storeId) {
+                            this.showToast('Seleccioná un comercio.', 'error');
+                            return;
+                        }
+                        if (!(oldPrice > price && price > 0)) {
+                            this.showToast('El Precio Anterior debe ser mayor al Precio Oferta.', 'error');
+                            return;
+                        }
+                        const targetId = this.adminOfferForm.id || this.adminOfferForm.existingProductId || null;
+                        const payload = {
+                            id: targetId,
+                            storeId: this.adminOfferForm.storeId,
+                            name: this.adminOfferForm.name.trim(),
+                            price,
+                            oldPrice,
+                            category: (this.adminOfferForm.category || 'Ofertas').trim(),
+                            description: this.adminOfferForm.description.trim(),
+                            image: this.adminOfferForm.image || '',
+                            inStock: true
+                        };
+                        if (this.dbReady) {
+                            await window.dbService.saveProduct(payload);
+                        } else {
+                            if (payload.id) {
+                                const idx = this.products.findIndex(p => p.id === payload.id);
+                                if (idx !== -1) this.products[idx] = payload;
+                            } else {
+                                this.products.push({ ...payload, id: 'local-' + Date.now() });
+                            }
+                        }
+                        this.showAdminOfferModal = false;
+                        this.showToast('¡Oferta publicada en la portada!');
+                    } catch (_) {
+                        this.showToast('Error al guardar la oferta.', 'error');
+                    }
+                },
+
+                async removeOfferFromProduct(prod) {
+                    try {
+                        const updated = { ...prod, oldPrice: null };
+                        if (this.dbReady) {
+                            await window.dbService.saveProduct(updated);
+                        } else {
+                            const idx = this.products.findIndex(p => p.id === prod.id);
+                            if (idx !== -1) this.products[idx].oldPrice = null;
+                        }
+                        this.showToast('Oferta quitada de la portada.');
+                    } catch (_) {
+                        this.showToast('Error al quitar la oferta.', 'error');
+                    }
+                },
+
+                copyStoreCredentials(store) {
+                    if (!store) return;
+                    const text = `Datos de acceso a ${store.name} (${this.platformSettings.appName}):\nUsuario: ${store.email || ''}\nContraseña: ${store.password || ''}`;
+                    this.copyText(text, '¡Usuario y contraseña copiados!');
+                },
+
                 openAdminEditStore(store) {
                     const defaultExp = store.expiresAt || (store.createdAt ? this.addDaysISO(store.createdAt.split('T')[0], 30) : this.addDaysISO(null, 30));
                     const waParts = this.splitWhatsApp(store.whatsapp);
+                    this.showAdminStorePass = true;
                     this.adminStoreForm = {
                         ...store,
+                        email: store.email || '',
+                        password: store.password || '',
                         waPrefix: waParts.prefix,
                         waLocal: waParts.local,
                         cover: store.cover || '',
@@ -2492,8 +2676,20 @@
 
                 async saveAdminEditStore() {
                     try {
+                        const cleanEmail = (this.adminStoreForm.email || '').trim().toLowerCase();
+                        const cleanPassword = (this.adminStoreForm.password || '').trim();
+                        if (!cleanEmail || !cleanPassword) {
+                            this.showToast('El email y la contraseña no pueden estar vacíos.', 'error');
+                            return;
+                        }
+                        if (this.stores.some(s => s.id !== this.adminStoreForm.id && (s.email || '').toLowerCase() === cleanEmail)) {
+                            this.showToast('Ese email ya pertenece a otro comercio.', 'error');
+                            return;
+                        }
                         const updated = {
                             name: this.adminStoreForm.name,
+                            email: cleanEmail,
+                            password: cleanPassword,
                             whatsapp: this.buildWhatsApp(this.adminStoreForm.waPrefix, this.adminStoreForm.waLocal),
                             status: this.adminStoreForm.status,
                             cover: this.adminStoreForm.cover || null,
@@ -2509,7 +2705,7 @@
                             if (idx !== -1) this.stores[idx] = { ...this.stores[idx], ...updated };
                         }
                         this.showAdminEditStoreModal = false;
-                        this.showToast('Comercio actualizado.');
+                        this.showToast('Comercio y datos de acceso actualizados.');
                     } catch (_) {
                         this.showToast('Error al actualizar.', 'error');
                     }
